@@ -11,17 +11,20 @@ model User {
   id             String    @id @default(cuid())
   name           String
   email          String    @unique
+  password       String?
   phone          String?
   avatar         String?
   university     String?
   campus         String?
   bio            String?
+  verified       Boolean   @default(false)
   createdAt      DateTime  @default(now())
   updatedAt      DateTime  @updatedAt
 
   listings       Listing[]
   sentMessages   Message[] @relation("SentMessages")
   receivedMessages Message[] @relation("ReceivedMessages")
+  stories        Story[]
 }
 
 model Listing {
@@ -80,4 +83,18 @@ model Message {
   listing        Listing   @relation(fields: [listingId], references: [id])
   sender         User      @relation("SentMessages", fields: [senderId], references: [id])
   receiver       User      @relation("ReceivedMessages", fields: [receiverId], references: [id])
+}
+
+model Story {
+  id             String    @id @default(cuid())
+  userId         String
+  type           String    @default("image")
+  mediaUrl       String
+  caption        String?
+  backgroundColor String   @default("#16a34a")
+  linkUrl        String?
+  createdAt      DateTime  @default(now())
+  expiresAt      DateTime
+
+  user           User      @relation(fields: [userId], references: [id])
 }

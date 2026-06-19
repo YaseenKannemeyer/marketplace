@@ -1,4 +1,5 @@
 import { create } from 'zustand'
+import { persist } from 'zustand/middleware'
 
 export type ListingDetail = {
   id: string
@@ -52,7 +53,42 @@ export type Message = {
   receiver: { id: string; name: string; avatar: string }
 }
 
-type ViewMode = 'browse' | 'detail' | 'create' | 'chat'
+export type AuthUser = {
+  id: string
+  name: string
+  email: string
+  phone: string | null
+  avatar: string | null
+  university: string | null
+  campus: string | null
+  bio: string | null
+  verified: boolean
+}
+
+export type StoryItem = {
+  id: string
+  userId: string
+  type: string
+  mediaUrl: string
+  caption: string | null
+  backgroundColor: string
+  linkUrl: string | null
+  createdAt: string
+  expiresAt: string
+}
+
+export type StoryGroup = {
+  user: {
+    id: string
+    name: string
+    avatar: string | null
+    university: string | null
+    verified: boolean
+  }
+  stories: StoryItem[]
+}
+
+type ViewMode = 'browse' | 'detail' | 'create' | 'chat' | 'login' | 'signup'
 
 interface MarketplaceStore {
   // View state
@@ -79,44 +115,76 @@ interface MarketplaceStore {
   currentChatListing: ListingDetail | null
   setCurrentChatListing: (listing: ListingDetail | null) => void
 
-  // Current user (simulated)
-  currentUserId: string
-  setCurrentUserId: (id: string) => void
+  // Auth
+  currentUser: AuthUser | null
+  setCurrentUser: (user: AuthUser | null) => void
+  logout: () => void
+
+  // Stories
+  viewingStoryGroup: StoryGroup | null
+  viewingStoryIndex: number
+  setViewingStoryGroup: (group: StoryGroup | null) => void
+  setViewingStoryIndex: (index: number) => void
+  showCreateStory: boolean
+  setShowCreateStory: (show: boolean) => void
 
   // Reset filters
   resetFilters: () => void
 }
 
-export const useMarketplaceStore = create<MarketplaceStore>((set) => ({
-  viewMode: 'browse',
-  setViewMode: (mode) => set({ viewMode: mode }),
+export const useMarketplaceStore = create<MarketplaceStore>()(
+  persist(
+    (set) => ({
+      viewMode: 'browse',
+      setViewMode: (mode) => set({ viewMode: mode }),
 
-  selectedListing: null,
-  setSelectedListing: (listing) => set({ selectedListing: listing }),
+      selectedListing: null,
+      setSelectedListing: (listing) => set({ selectedListing: listing }),
 
-  searchQuery: '',
-  setSearchQuery: (query) => set({ searchQuery: query }),
-  selectedCategory: '',
-  setSelectedCategory: (categoryId) => set({ selectedCategory: categoryId }),
-  selectedUniversity: '',
-  setSelectedUniversity: (uniId) => set({ selectedUniversity: uniId }),
-  selectedCondition: '',
-  setSelectedCondition: (condition) => set({ selectedCondition: condition }),
-  sortBy: 'newest',
-  setSortBy: (sort) => set({ sortBy: sort }),
-
-  currentChatListing: null,
-  setCurrentChatListing: (listing) => set({ currentChatListing: listing }),
-
-  currentUserId: 'user-1',
-  setCurrentUserId: (id) => set({ currentUserId: id }),
-
-  resetFilters: () =>
-    set({
       searchQuery: '',
+      setSearchQuery: (query) => set({ searchQuery: query }),
       selectedCategory: '',
+      setSelectedCategory: (categoryId) => set({ selectedCategory: categoryId }),
       selectedUniversity: '',
+      setSelectedUniversity: (uniId) => set({ selectedUniversity: uniId }),
       selectedCondition: '',
+      setSelectedCondition: (condition) => set({ selectedCondition: condition }),
       sortBy: 'newest',
+      setSortBy: (sort) => set({ sortBy: sort }),
+
+      currentChatListing: null,
+      setCurrentChatListing: (listing) => set({ currentChatListing: listing }),
+
+      currentUser: null,
+      setCurrentUser: (user) => set({ currentUser: user, currentUserId: user?.id || null }),
+      logout: () => set({ currentUser: null, currentUserId: null }),
+
+      viewingStoryGroup: null,
+      viewingStoryIndex: 0,
+      setViewingStoryGroup: (group) => set({ viewingStoryGroup: group, viewingStoryIndex: 0 }),
+      setViewingStoryIndex: (index) => set({ viewingStoryIndex: index }),
+      showCreateStory: false,
+      setShowCreateStory: (show) => set({ showCreateStory: show }),
+
+      // Legacy alias for backward compat (used in listing create)
+      currentUserId: null as string | null,
+      setCurrentUserId: (id) => set({ currentUserId: id }),
+
+      resetFilters: () =>
+        set({
+          searchQuery: '',
+          selectedCategory: '',
+          selectedUniversity: '',
+          selectedCondition: '',
+          sortBy: 'newest',
+        }),
     }),
-}))
+    {
+      name: 'studentmarket-auth',
+      partialize: (state) => ({
+        currentUser: state.currentUser,
+        currentUserId: state.currentUserId,
+      }),
+    }
+  )
+)

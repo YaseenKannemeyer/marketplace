@@ -26,15 +26,16 @@ const universities = [
   { name: 'University of Limpopo', shortName: 'UL', province: 'Limpopo', campuses: '["Turfloop","Medical Sciences"]' },
 ]
 
+// Users with hashed passwords (password is 'password123' for all)
 const users = [
-  { id: 'user-1', name: 'Sipho Mkhize', email: 'sipho@uct.ac.za', phone: '+27 71 234 5678', university: 'University of Cape Town', campus: 'Upper Campus', bio: '3rd year Computer Science student. Love coding and gaming.', avatar: 'https://api.dicebear.com/9.x/avataaars/svg?seed=Sipho' },
-  { id: 'user-2', name: 'Thandi Ndlovu', email: 'thandi@wits.ac.za', phone: '+27 82 345 6789', university: 'University of the Witwatersrand', campus: 'East Campus', bio: 'Med student looking to sell my pre-med textbooks.', avatar: 'https://api.dicebear.com/9.x/avataaars/svg?seed=Thandi' },
-  { id: 'user-3', name: 'Kgosi Molefe', email: 'kgosi@su.ac.za', phone: '+27 63 456 7890', university: 'Stellenbosch University', campus: 'Stellenbosch Main', bio: 'Engineering student. Got too many gadgets, need to declutter.', avatar: 'https://api.dicebear.com/9.x/avataaars/svg?seed=Kgosi' },
-  { id: 'user-4', name: 'Lerato Mahlangu', email: 'lerato@up.ac.za', phone: '+27 74 567 8901', university: 'University of Pretoria', campus: 'Hatfield', bio: 'BA Communication student. Fashion enthusiast.', avatar: 'https://api.dicebear.com/9.x/avataaars/svg?seed=Lerato' },
-  { id: 'user-5', name: 'Bongani Dlamini', email: 'bongani@ukzn.ac.za', phone: '+27 85 678 9012', university: 'University of KwaZulu-Natal', campus: 'Westville', bio: 'BCom Accounting. Selling stuff I no longer need.', avatar: 'https://api.dicebear.com/9.x/avataaars/svg?seed=Bongani' },
-  { id: 'user-6', name: 'Nomsa Zulu', email: 'nomsa@uj.ac.za', phone: '+27 76 789 0123', university: 'University of Johannesburg', campus: 'Auckland Park', bio: 'Law student. Moving out, selling everything!', avatar: 'https://api.dicebear.com/9.x/avataaars/svg?seed=Nomsa' },
-  { id: 'user-7', name: 'Andile Botha', email: 'andile@ru.ac.za', phone: '+27 72 890 1234', university: 'Rhodes University', campus: 'Grahamstown Main', bio: 'Journalism & Media Studies. Got loads of textbooks to sell.', avatar: 'https://api.dicebear.com/9.x/avataaars/svg?seed=Andile' },
-  { id: 'user-8', name: 'Zanele Nkosi', email: 'zanele@nwu.ac.za', phone: '+27 68 901 2345', university: 'North-West University', campus: 'Potchefstroom', bio: 'Education student. Love finding good deals.', avatar: 'https://api.dicebear.com/9.x/avataaars/svg?seed=Zanele' },
+  { id: 'user-1', name: 'Sipho Mkhize', email: 'sipho@uct.ac.za', password: 'password123', phone: '+27 71 234 5678', university: 'University of Cape Town', campus: 'Upper Campus', bio: '3rd year Computer Science student. Love coding and gaming.', avatar: 'https://api.dicebear.com/9.x/avataaars/svg?seed=Sipho', verified: true },
+  { id: 'user-2', name: 'Thandi Ndlovu', email: 'thandi@wits.ac.za', password: 'password123', phone: '+27 82 345 6789', university: 'University of the Witwatersrand', campus: 'East Campus', bio: 'Med student looking to sell my pre-med textbooks.', avatar: 'https://api.dicebear.com/9.x/avataaars/svg?seed=Thandi', verified: true },
+  { id: 'user-3', name: 'Kgosi Molefe', email: 'kgosi@su.ac.za', password: 'password123', phone: '+27 63 456 7890', university: 'Stellenbosch University', campus: 'Stellenbosch Main', bio: 'Engineering student. Got too many gadgets, need to declutter.', avatar: 'https://api.dicebear.com/9.x/avataaars/svg?seed=Kgosi', verified: true },
+  { id: 'user-4', name: 'Lerato Mahlangu', email: 'lerato@up.ac.za', password: 'password123', phone: '+27 74 567 8901', university: 'University of Pretoria', campus: 'Hatfield', bio: 'BA Communication student. Fashion enthusiast.', avatar: 'https://api.dicebear.com/9.x/avataaars/svg?seed=Lerato', verified: true },
+  { id: 'user-5', name: 'Bongani Dlamini', email: 'bongani@ukzn.ac.za', password: 'password123', phone: '+27 85 678 9012', university: 'University of KwaZulu-Natal', campus: 'Westville', bio: 'BCom Accounting. Selling stuff I no longer need.', avatar: 'https://api.dicebear.com/9.x/avataaars/svg?seed=Bongani', verified: true },
+  { id: 'user-6', name: 'Nomsa Zulu', email: 'nomsa@uj.ac.za', password: 'password123', phone: '+27 76 789 0123', university: 'University of Johannesburg', campus: 'Auckland Park', bio: 'Law student. Moving out, selling everything!', avatar: 'https://api.dicebear.com/9.x/avataaars/svg?seed=Nomsa', verified: false },
+  { id: 'user-7', name: 'Andile Botha', email: 'andile@ru.ac.za', password: 'password123', phone: '+27 72 890 1234', university: 'Rhodes University', campus: 'Grahamstown Main', bio: 'Journalism & Media Studies. Got loads of textbooks to sell.', avatar: 'https://api.dicebear.com/9.x/avataaars/svg?seed=Andile', verified: true },
+  { id: 'user-8', name: 'Zanele Nkosi', email: 'zanele@nwu.ac.za', password: 'password123', phone: '+27 68 901 2345', university: 'North-West University', campus: 'Potchefstroom', bio: 'Education student. Love finding good deals.', avatar: 'https://api.dicebear.com/9.x/avataaars/svg?seed=Zanele', verified: true },
 ]
 
 const placeholderImages = [
@@ -80,46 +81,31 @@ const transportImages = [
 ]
 
 const listings = [
-  // Textbooks
   { title: 'Calculus: Early Transcendentals 8th Edition', description: 'James Stewart Calculus textbook. Used for one semester, still in excellent condition. Minimal highlighting. Perfect for Maths 1A/1B.', price: 450, categoryId: 'cat-1', sellerId: 'user-1', universityId: 'uni-1', campus: 'Upper Campus', location: 'UCT, Rondebosch', condition: 'Like New', images: JSON.stringify([textbookImages[0]]) },
   { title: 'Organic Chemistry - Klein 3rd Ed', description: 'Organic Chemistry textbook by David Klein. Great condition, no torn pages. Comes with the solution manual.', price: 550, categoryId: 'cat-1', sellerId: 'user-2', universityId: 'uni-2', campus: 'East Campus', location: 'Wits, Braamfontein', condition: 'Good', images: JSON.stringify([textbookImages[1]]) },
   { title: 'Introduction to Psychology - MyPsychLab', description: 'Complete Psych 101 textbook set. Includes access code for online resources (still valid). Barely used.', price: 380, categoryId: 'cat-1', sellerId: 'user-4', universityId: 'uni-4', campus: 'Hatfield', location: 'UP, Hatfield', condition: 'Like New', images: JSON.stringify([textbookImages[2]]) },
   { title: 'Financial Accounting - Volume 1 & 2 Bundle', description: 'Complete set for Accounting 101-102. Both volumes included. Some pencil notes in margins but overall clean.', price: 600, categoryId: 'cat-1', sellerId: 'user-5', universityId: 'uni-5', campus: 'Westville', location: 'UKZN, Westville', condition: 'Good', images: JSON.stringify([textbookImages[3]]) },
   { title: 'Business Management 101 Notes Pack', description: 'Comprehensive study notes for Business Management 101. A+ student notes with summaries, past paper solutions and mind maps.', price: 150, categoryId: 'cat-1', sellerId: 'user-3', universityId: 'uni-3', campus: 'Stellenbosch Main', location: 'SU, Stellenbosch', condition: 'New', images: JSON.stringify([textbookImages[0]]) },
   { title: 'Human Anatomy & Physiology Atlas', description: 'Marieb Human Anatomy & Physiology 10th edition. Includes CD. Great for medical and health sciences students.', price: 700, categoryId: 'cat-1', sellerId: 'user-2', universityId: 'uni-2', campus: 'East Campus', location: 'Wits, Braamfontein', condition: 'Good', images: JSON.stringify([textbookImages[2]]) },
-
-  // Electronics
   { title: 'iPad Air 5th Gen 64GB - Space Grey', description: 'Selling my iPad as I upgraded. Excellent condition, always had a screen protector and case. Battery health 95%. Comes with charger and original box.', price: 6500, categoryId: 'cat-2', sellerId: 'user-1', universityId: 'uni-1', campus: 'Upper Campus', location: 'UCT, Rondebosch', condition: 'Like New', images: JSON.stringify([electronicsImages[0]]) },
   { title: 'Samsung Galaxy Buds2 Pro', description: 'Noise-cancelling earbuds. Used for 3 months. Excellent sound quality. Comes with all original accessories and case.', price: 1800, categoryId: 'cat-2', sellerId: 'user-3', universityId: 'uni-3', campus: 'Stellenbosch Main', location: 'SU, Stellenbosch', condition: 'Like New', images: JSON.stringify([electronicsImages[1]]) },
   { title: 'HP Laptop 15s - Ryzen 5, 8GB RAM', description: 'Great laptop for studies. Ryzen 5 5500U, 8GB RAM, 256GB SSD. Windows 11. Battery lasts about 5 hours. Minor scratches on lid.', price: 5500, categoryId: 'cat-2', sellerId: 'user-5', universityId: 'uni-5', campus: 'Westville', location: 'UKZN, Westville', condition: 'Good', images: JSON.stringify([electronicsImages[2]]) },
   { title: 'Canon EOS 250D DSLR Camera', description: 'Perfect for photography students or hobbyists. 24.1MP, comes with 18-55mm kit lens, camera bag, and 64GB SD card. Shutter count under 5000.', price: 4800, categoryId: 'cat-2', sellerId: 'user-7', universityId: 'uni-7', campus: 'Grahamstown Main', location: 'Rhodes, Makhanda', condition: 'Like New', images: JSON.stringify([electronicsImages[3]]) },
   { title: 'JBL Flip 6 Bluetooth Speaker', description: 'Portable Bluetooth speaker. Waterproof, great sound. Used for about 6 months. Minor cosmetic wear.', price: 1200, categoryId: 'cat-2', sellerId: 'user-4', universityId: 'uni-4', campus: 'Hatfield', location: 'UP, Hatfield', condition: 'Good', images: JSON.stringify([electronicsImages[0]]) },
   { title: 'Scientific Calculator Casio FX-991EX', description: 'ClassWiz scientific calculator. Required for most engineering and science courses. Barely used, like new.', price: 280, categoryId: 'cat-2', sellerId: 'user-8', universityId: 'uni-8', campus: 'Potchefstroom', location: 'NWU, Potchefstroom', condition: 'Like New', images: JSON.stringify([electronicsImages[1]]) },
-
-  // Accommodation
   { title: 'Room in Shared House - Obs, Cape Town', description: 'Furnished room available in a 4-bedroom shared house in Observatory. Close to UCT (5 min drive). Includes WiFi, electricity, water. Shared kitchen and bathroom. R4000/month, available 1 July.', price: 4000, categoryId: 'cat-3', sellerId: 'user-1', universityId: 'uni-1', campus: 'Upper Campus', location: 'Observatory, Cape Town', condition: 'Good', images: JSON.stringify([placeholderImages[0]]) },
   { title: 'Student Apartment - Braamfontein', description: 'Modern studio apartment in Braamfontein. Walking distance to Wits. Fully furnished with built-in desk, wardrobe, and kitchenette. Gym and laundry in building. R5500/month.', price: 5500, categoryId: 'cat-3', sellerId: 'user-6', universityId: 'uni-6', campus: 'Auckland Park', location: 'Braamfontein, Johannesburg', condition: 'New', images: JSON.stringify([placeholderImages[1]]) },
   { title: 'Subletting Room - Hatfield, Pretoria', description: 'Subletting my room for semester break (June-Aug). Sharing with 2 friendly UP students. Close to campus, shops, and Gautrain. Fully furnished.', price: 3000, categoryId: 'cat-3', sellerId: 'user-4', universityId: 'uni-4', campus: 'Hatfield', location: 'Hatfield, Pretoria', condition: 'Good', images: JSON.stringify([placeholderImages[2]]) },
-
-  // Clothing
   { title: 'Varsity Jacket - UCT Limited Edition', description: 'UCT branded varsity jacket. Size M. Only worn once. Selling because I got the wrong size. These retail for R1200.', price: 650, categoryId: 'cat-4', sellerId: 'user-1', universityId: 'uni-1', campus: 'Upper Campus', location: 'UCT, Rondebosch', condition: 'Like New', images: JSON.stringify([clothingImages[0]]) },
   { title: 'Nike Air Force 1 - White, Size 9', description: 'Classic white AF1s. Size 9 UK. Worn a few times, still very clean. No creases. Comes with original box.', price: 1200, categoryId: 'cat-4', sellerId: 'user-4', universityId: 'uni-4', campus: 'Hatfield', location: 'UP, Hatfield', condition: 'Good', images: JSON.stringify([clothingImages[1]]) },
   { title: 'Graduation Gown & Hood - BCom', description: 'UCT graduation gown and BCom hood. Used once. Also selling the trencher (mortar board). Save yourself the rental fee!', price: 800, categoryId: 'cat-4', sellerId: 'user-5', universityId: 'uni-5', campus: 'Westville', location: 'UKZN, Westville', condition: 'Like New', images: JSON.stringify([clothingImages[2]]) },
-
-  // Transport
   { title: 'Lift Club - Johannesburg to Pretoria Daily', description: 'Offering daily lift from Johannesburg CBD to UP Hatfield campus. Mon-Fri, 7am departure, 5pm return. R1500/month or R100/ride.', price: 1500, categoryId: 'cat-5', sellerId: 'user-6', universityId: 'uni-6', campus: 'Auckland Park', location: 'Johannesburg CBD', condition: 'New', images: JSON.stringify([transportImages[0]]) },
   { title: 'Mountain Bike - Giant ATX 2', description: 'Great commuter bike for campus. 21-speed Shimano gears, front suspension. Recently serviced. Lock and helmet included.', price: 2500, categoryId: 'cat-5', sellerId: 'user-3', universityId: 'uni-3', campus: 'Stellenbosch Main', location: 'SU, Stellenbosch', condition: 'Good', images: JSON.stringify([transportImages[1]]) },
-
-  // Furniture
   { title: 'Study Desk & Chair Set', description: 'Solid wood study desk (120x60cm) with ergonomic office chair. Both in good condition. Selling because I am moving out of res.', price: 1500, categoryId: 'cat-6', sellerId: 'user-7', universityId: 'uni-7', campus: 'Grahamstown Main', location: 'Rhodes, Makhanda', condition: 'Good', images: JSON.stringify([furnitureImages[0]]) },
   { title: 'Single Bed Base + Mattress', description: 'Standard single bed base with orthopaedic mattress. Clean, no stains. Mattress has been in a waterproof cover the whole time. Must collect.', price: 1200, categoryId: 'cat-6', sellerId: 'user-6', universityId: 'uni-6', campus: 'Auckland Park', location: 'Auckland Park, JHB', condition: 'Good', images: JSON.stringify([furnitureImages[1]]) },
   { title: 'Mini Fridge - Defy 130L', description: 'Small bar fridge, perfect for res room. 130L capacity, freezer compartment. Works perfectly. About 2 years old.', price: 1800, categoryId: 'cat-6', sellerId: 'user-8', universityId: 'uni-8', campus: 'Potchefstroom', location: 'NWU, Potchefstroom', condition: 'Good', images: JSON.stringify([furnitureImages[2]]) },
-
-  // Services
   { title: 'Tutoring - Maths 1A & 1B', description: '3rd year Maths major offering tutoring for first-year Maths courses. R200/hour, one-on-one or small groups. Online or in-person at UCT Jammie Shuttle route.', price: 200, categoryId: 'cat-8', sellerId: 'user-1', universityId: 'uni-1', campus: 'Upper Campus', location: 'UCT, Rondebosch', condition: 'New', images: JSON.stringify([placeholderImages[3]]) },
   { title: 'Proofreading & Essay Editing', description: 'MA English student offering proofreading and editing services. R50 per 1000 words. Quick turnaround. Specialising in Humanities essays.', price: 50, categoryId: 'cat-8', sellerId: 'user-7', universityId: 'uni-7', campus: 'Grahamstown Main', location: 'Rhodes, Makhanda', condition: 'New', images: JSON.stringify([placeholderImages[4]]) },
-
-  // Free Stuff
   { title: 'Free Textbooks - 1st Year BCom', description: 'Giving away my 1st year BCom textbooks. Titles: Economics 101, Business Stats, Accounting Principles. Must collect from Hatfield.', price: 0, categoryId: 'cat-10', sellerId: 'user-4', universityId: 'uni-4', campus: 'Hatfield', location: 'UP, Hatfield', condition: 'Good', images: JSON.stringify([textbookImages[3]]) },
   { title: 'Free Desk Lamp & Stationery Set', description: 'Clearing out my room. Giving away a desk lamp (still works perfectly), set of pens, highlighters, and notebooks.', price: 0, categoryId: 'cat-10', sellerId: 'user-8', universityId: 'uni-8', campus: 'Potchefstroom', location: 'NWU, Potchefstroom', condition: 'Good', images: JSON.stringify([placeholderImages[5]]) },
 ]
@@ -131,10 +117,35 @@ const messages = [
   { content: 'What condition is the bed in?', listingId: 'list-19', senderId: 'user-5', receiverId: 'user-6' },
 ]
 
+// Stories data - each story has a gradient background and caption
+const stories = [
+  // Sipho's stories
+  { userId: 'user-1', type: 'gradient', mediaUrl: '', caption: 'Just listed my iPad! Check it out', backgroundColor: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)', linkUrl: '' },
+  { userId: 'user-1', type: 'gradient', mediaUrl: '', caption: 'Free calculus notes available too', backgroundColor: 'linear-gradient(135deg, #f093fb 0%, #f5576c 100%)', linkUrl: '' },
+  // Thandi's stories
+  { userId: 'user-2', type: 'image', mediaUrl: 'https://images.unsplash.com/photo-1580582932707-520aed937b7b?w=600&h=900&fit=crop', caption: 'Med textbooks going fast! DM me', backgroundColor: '#000000', linkUrl: '' },
+  { userId: 'user-2', type: 'gradient', mediaUrl: '', caption: 'Wits students get 10% off', backgroundColor: 'linear-gradient(135deg, #4facfe 0%, #00f2fe 100%)', linkUrl: '' },
+  // Kgosi's stories
+  { userId: 'user-3', type: 'gradient', mediaUrl: '', caption: 'New Samsung Buds2 Pro - barely used!', backgroundColor: 'linear-gradient(135deg, #43e97b 0%, #38f9d7 100%)', linkUrl: '' },
+  // Lerato's stories
+  { userId: 'user-4', type: 'image', mediaUrl: 'https://images.unsplash.com/photo-1441986300917-64674bd600d8?w=600&h=900&fit=crop', caption: 'Spring wardrobe clearance! Everything must go', backgroundColor: '#000000', linkUrl: '' },
+  { userId: 'user-4', type: 'gradient', mediaUrl: '', caption: 'Size 9 Nike AF1s still available', backgroundColor: 'linear-gradient(135deg, #fa709a 0%, #fee140 100%)', linkUrl: '' },
+  // Bongani's stories
+  { userId: 'user-5', type: 'gradient', mediaUrl: '', caption: 'Accounting textbooks bundle - save R200', backgroundColor: 'linear-gradient(135deg, #a18cd1 0%, #fbc2eb 100%)', linkUrl: '' },
+  // Nomsa's stories
+  { userId: 'user-6', type: 'gradient', mediaUrl: '', caption: 'MOVING SALE! Everything must go!', backgroundColor: 'linear-gradient(135deg, #ffecd2 0%, #fcb69f 100%)', linkUrl: '' },
+  { userId: 'user-6', type: 'gradient', mediaUrl: '', caption: 'Braamfontein apartment available July', backgroundColor: 'linear-gradient(135deg, #ff9a9e 0%, #fecfef 100%)', linkUrl: '' },
+  // Andile's stories
+  { userId: 'user-7', type: 'gradient', mediaUrl: '', caption: 'Essay editing service - R50/1000 words', backgroundColor: 'linear-gradient(135deg, #c471f5 0%, #fa71cd 100%)', linkUrl: '' },
+  // Zanele's stories
+  { userId: 'user-8', type: 'gradient', mediaUrl: '', caption: 'Free stuff Friday! Check my listings', backgroundColor: 'linear-gradient(135deg, #48c6ef 0%, #6f86d6 100%)', linkUrl: '' },
+]
+
 async function seed() {
   console.log('🌱 Seeding database...')
 
   // Clear existing data
+  await db.story.deleteMany()
   await db.message.deleteMany()
   await db.listing.deleteMany()
   await db.user.deleteMany()
@@ -176,6 +187,19 @@ async function seed() {
     await db.message.create({ data: msg as any })
   }
   console.log(`✅ Created ${messages.length} messages`)
+
+  // Create stories (expire in 24 hours)
+  const expiresAt = new Date(Date.now() + 24 * 60 * 60 * 1000)
+  for (const story of stories) {
+    await db.story.create({
+      data: {
+        id: `story-${stories.indexOf(story) + 1}`,
+        ...story,
+        expiresAt,
+      },
+    })
+  }
+  console.log(`✅ Created ${stories.length} stories`)
 
   console.log('\n🎉 Database seeded successfully!')
 }

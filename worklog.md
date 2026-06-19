@@ -1,21 +1,24 @@
 ---
-Task ID: 1
+Task ID: 2
 Agent: Main Agent
-Task: Build Facebook Marketplace clone for South African university students
+Task: Add login/signup with email validation and Stories Tray
 
 Work Log:
-- Designed Prisma schema with models: User, Listing, Category, University, Message
-- Created comprehensive seed data with 10 SA universities, 10 categories, 8 student users, 27 realistic listings
-- Built 5 API routes: listings (GET/POST), listing detail (GET/DELETE), messages (GET/POST), categories (GET), universities (GET)
-- Built full-featured marketplace SPA with Zustand state management
-- Components: Header with search, CategoryBar, FilterBar, HeroBanner, ListingGrid, ListingCard, ListingDetailDialog, CreateListingDialog, Footer
-- South African context: ZAR currency, SA universities (UCT, Wits, SU, UP, UKZN, etc.), student-relevant categories
-- Emerald green theme with responsive design (mobile-first)
-- Features: search, category/university/condition filtering, sorting, listing detail view, messaging, create listing
-- Verified with agent-browser: homepage loads, category filtering works, listing detail dialog opens, create listing form works, mobile responsive
+- Updated Prisma schema with password, verified fields on User model and new Story model
+- Created API routes: /api/auth/login, /api/auth/signup, /api/auth/verify-email, /api/stories
+- Email validation: checks format regex, SA student domains (.ac.za auto-verified), password strength (8+ chars, uppercase, number)
+- Built Login dialog with email/password fields and show/hide toggle
+- Built Signup dialog with name, email, university, password strength indicator, confirm password
+- Built Stories Tray with gradient ring borders, verified badge, user avatars, horizontal scroll
+- Built Story Viewer full-screen overlay with progress bars, auto-advance timer (5s), gradient/image backgrounds, caption, university info
+- Built Create Story dialog with gradient picker and caption preview
+- User dropdown menu with Create Story, New Listing, Sign Out options
+- Zustand persist middleware for auth state persistence
+- Fixed issues: EyeOpen icon not in lucide-react, z-index Tailwind 4 compatibility, story viewer timer loop
 
 Stage Summary:
-- Fully functional marketplace clone at localhost:3000
-- 27 seeded listings across 10 categories and 10 SA universities
-- All CRUD operations working via API routes
-- Responsive design verified on mobile (375x812) and desktop
+- Login/Signup system with email validation working
+- 12 stories seeded across 8 users with gradient and image backgrounds
+- Story Viewer with auto-advance, progress bars, and tap navigation
+- Auth state persisted across page reloads
+- Mobile responsive verified
