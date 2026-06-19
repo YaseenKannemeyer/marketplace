@@ -1,0 +1,402 @@
+   400→            </div>
+   401→            <p className="text-xs text-gray-400 mt-1">Use your student number email (e.g. 219045678@mycput.ac.za) for auto-verification</p>
+   402→          </div>
+   403→          <div>
+   404→            <Label className="text-sm font-medium">University</Label>
+   405→            <Select value={university} onValueChange={setUniversity}>
+   406→              <SelectTrigger className="mt-1.5"><SelectValue placeholder="Select university" /></SelectTrigger>
+   407→              <SelectContent>{SA_UNIVERSITIES.map((u) => <SelectItem key={u} value={u}>{u}</SelectItem>)}</SelectContent>
+   408→            </Select>
+   409→          </div>
+   410→          <div>
+   411→            <Label className="text-sm font-medium">Password *</Label>
+   412→            <div className="relative mt-1.5">
+   413→              <Lock className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400" />
+   414→              <Input type={showPassword ? 'text' : 'password'} placeholder="Min 8 chars, 1 uppercase, 1 number" value={password} onChange={(e) => setPassword(e.target.value)} className="pl-10 pr-10" required />
+   415→              <button type="button" onClick={() => setShowPassword(!showPassword)} className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600">{showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}</button>
+   416→            </div>
+   417→            {password && (
+   418→              <div className="mt-2 flex items-center gap-2">
+   419→                <div className="flex-1 flex gap-1">{[1, 2, 3, 4].map((i) => (<div key={i} className={`h-1 flex-1 rounded-full ${i <= passwordStrength.score ? passwordStrength.color : 'bg-gray-200'}`} />))}</div>
+   420→                <span className="text-xs text-gray-500">{passwordStrength.label}</span>
+   421→              </div>
+   422→            )}
+   423→          </div>
+   424→          <div><Label className="text-sm font-medium">Confirm Password *</Label><div className="relative mt-1.5"><Lock className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400" /><Input type={showPassword ? 'text' : 'password'} placeholder="Re-enter password" value={confirmPassword} onChange={(e) => setConfirmPassword(e.target.value)} className="pl-10" required /></div></div>
+   425→          <Button type="submit" disabled={isLoading} className="w-full bg-emerald-600 hover:bg-emerald-700 rounded-xl h-11 font-medium">{isLoading ? 'Creating account...' : 'Create Account'}</Button>
+   426→          <div className="text-center text-sm"><span className="text-gray-500">Already have an account? </span><button type="button" onClick={() => setViewMode('login')} className="text-emerald-600 font-semibold hover:underline">Sign In</button></div>
+   427→        </form>
+   428→      </DialogContent>
+   429→    </Dialog>
+   430→  )
+   431→}
+   432→
+   433→// ─── Header ───
+   434→function Header() {
+   435→  const router = useRouter()
+   436→  const { searchQuery, setSearchQuery, setViewMode, currentUser, logout, setShowCreateStory } = useMarketplaceStore()
+   437→  const [showUserMenu, setShowUserMenu] = useState(false)
+   438→
+   439→  return (
+   440→    <header className="sticky top-0 z-50 bg-white border-b border-gray-200 shadow-sm">
+   441→      <div className="max-w-7xl mx-auto px-4 py-3">
+   442→        <div className="flex items-center gap-3">
+   443→          <div className="flex items-center gap-2 shrink-0 cursor-pointer" onClick={() => router.push('/')}>
+   444→            <div className="w-9 h-9 bg-emerald-600 rounded-lg flex items-center justify-center"><Tag className="h-5 w-5 text-white" /></div>
+   445→            <div className="hidden sm:block">
+   446→              <h1 className="text-lg font-bold text-gray-900 leading-tight">StudentMarket</h1>
+   447→              <p className="text-[10px] text-emerald-600 font-medium leading-tight">South Africa</p>
+   448→            </div>
+   449→          </div>
+   450→
+   451→          <div className="flex-1 max-w-2xl">
+   452→            <div className="relative">
+   453→              <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400" />
+   454→              <Input placeholder="Search textbooks, electronics, accommodation..." value={searchQuery} onChange={(e) => setSearchQuery(e.target.value)} className="pl-10 pr-4 h-10 bg-gray-50 border-gray-200 rounded-full text-sm focus:bg-white focus:border-emerald-400 focus:ring-emerald-400" />
+   455→              {searchQuery && (<button onClick={() => setSearchQuery('')} className="absolute right-3 top-1/2 -translate-y-1/2"><X className="h-4 w-4 text-gray-400 hover:text-gray-600" /></button>)}
+   456→            </div>
+   457→          </div>
+   458→
+   459→          <div className="flex items-center gap-2">
+   460→            {/* Chat icon - always visible */}
+   461→            {currentUser && (
+   462→              <button
+   463→                onClick={() => router.push('/chat')}
+   464→                className="relative p-2 rounded-full hover:bg-gray-50 transition-colors"
+   465→              >
+   466→                <MessageSquare className="h-5 w-5 text-gray-600" />
+   467→              </button>
+   468→            )}
+   469→
+   470→            {currentUser ? (
+   471→              <>
+   472→                {currentUser.verified && (
+   473→                  <Badge className="bg-emerald-100 text-emerald-700 border-emerald-200 gap-1 text-xs hidden sm:flex">
+   474→                    <Shield className="h-3 w-3" /> Verified
+   475→                  </Badge>
+   476→                )}
+   477→                <div className="relative">
+   478→                  <button onClick={() => setShowUserMenu(!showUserMenu)} className="flex items-center gap-2 px-2 py-1.5 rounded-full hover:bg-gray-50 transition-colors">
+   479→                    <Avatar className="h-7 w-7">
+   480→                      <AvatarImage src={currentUser.avatar || ''} />
+   481→                      <AvatarFallback className="text-[10px]">{currentUser.name.charAt(0)}</AvatarFallback>
+   482→                    </Avatar>
+   483→                    <span className="hidden sm:inline text-sm font-medium text-gray-700">{currentUser.name.split(' ')[0]}</span>
+   484→                  </button>
+   485→
+   486→                  {showUserMenu && (
+   487→                    <div className="absolute right-0 top-full mt-1 w-60 bg-white rounded-xl shadow-lg border border-gray-200 py-2 z-50">
+   488→                      <div className="px-4 py-3 border-b border-gray-100">
+   489→                        <p className="text-sm font-semibold">{currentUser.name}</p>
+   490→                        <p className="text-xs text-gray-500">{currentUser.email}</p>
+   491→                        {currentUser.university && <p className="text-xs text-emerald-600 mt-0.5">{currentUser.university}</p>}
+   492→                      </div>
+   493→                      <button onClick={() => { router.push('/profile'); setShowUserMenu(false) }} className="w-full px-4 py-2.5 text-sm text-left hover:bg-gray-50 flex items-center gap-2.5">
+   494→                        <Settings className="h-4 w-4 text-gray-500" /> My Profile
+   495→                      </button>
+   496→                      <button onClick={() => { router.push('/chat'); setShowUserMenu(false) }} className="w-full px-4 py-2.5 text-sm text-left hover:bg-gray-50 flex items-center gap-2.5">
+   497→                        <MessageSquare className="h-4 w-4 text-gray-500" /> Messages
+   498→                      </button>
+   499→                      <button onClick={() => { setShowCreateStory(true); setShowUserMenu(false) }} className="w-full px-4 py-2.5 text-sm text-left hover:bg-gray-50 flex items-center gap-2.5">
+   500→                        <Camera className="h-4 w-4 text-gray-500" /> Create Story
+   501→                      </button>
+   502→                      <button onClick={() => { setViewMode('create'); setShowUserMenu(false) }} className="w-full px-4 py-2.5 text-sm text-left hover:bg-gray-50 flex items-center gap-2.5">
+   503→                        <Plus className="h-4 w-4 text-gray-500" /> New Listing
+   504→                      </button>
+   505→                      <div className="border-t border-gray-100 mt-1 pt-1">
+   506→                        <button onClick={() => { logout(); setShowUserMenu(false); toast.success('Logged out') }} className="w-full px-4 py-2.5 text-sm text-left hover:bg-red-50 text-red-600 flex items-center gap-2.5">
+   507→                          <LogOut className="h-4 w-4" /> Sign Out
+   508→                        </button>
+   509→                      </div>
+   510→                    </div>
+   511→                  )}
+   512→                </div>
+   513→              </>
+   514→            ) : (
+   515→              <Button onClick={() => setViewMode('login')} variant="outline" className="rounded-full gap-1.5 text-sm font-medium border-gray-200">
+   516→                <User className="h-4 w-4" />
+   517→                <span className="hidden sm:inline">Sign In</span>
+   518→              </Button>
+   519→            )}
+   520→
+   521→            <Button onClick={() => currentUser ? setViewMode('create') : setViewMode('signup')} className="bg-emerald-600 hover:bg-emerald-700 rounded-full gap-1.5 text-sm font-medium">
+   522→              <Plus className="h-4 w-4" />
+   523→              <span className="hidden sm:inline">Sell</span>
+   524→            </Button>
+   525→          </div>
+   526→        </div>
+   527→      </div>
+   528→      {showUserMenu && <div className="fixed inset-0 z-40" onClick={() => setShowUserMenu(false)} />}
+   529→    </header>
+   530→  )
+   531→}
+   532→
+   533→// ─── Category Bar ───
+   534→function CategoryBar({ categories }: { categories: Category[] }) {
+   535→  const { selectedCategory, setSelectedCategory } = useMarketplaceStore()
+   536→  return (
+   537→    <div className="border-b border-gray-100 bg-white">
+   538→      <div className="max-w-7xl mx-auto px-4">
+   539→        <div className="flex gap-1 py-2 overflow-x-auto no-scrollbar">
+   540→          <button onClick={() => setSelectedCategory('')} className={`flex items-center gap-2 px-4 py-2 rounded-full text-sm font-medium whitespace-nowrap transition-all ${!selectedCategory ? 'bg-emerald-600 text-white shadow-md shadow-emerald-200' : 'bg-gray-100 text-gray-600 hover:bg-gray-200'}`}>
+   541→            <LayoutGrid className="h-4 w-4" /> All
+   542→          </button>
+   543→          {categories.map((cat) => (
+   544→            <button key={cat.id} onClick={() => setSelectedCategory(selectedCategory === cat.id ? '' : cat.id)} className={`flex items-center gap-2 px-4 py-2 rounded-full text-sm font-medium whitespace-nowrap transition-all ${selectedCategory === cat.id ? 'text-white shadow-md' : 'bg-gray-100 text-gray-600 hover:bg-gray-200'}`} style={selectedCategory === cat.id ? { backgroundColor: cat.color } : undefined}>
+   545→              {ICON_MAP[cat.icon]}
+   546→              <span className="hidden sm:inline">{cat.name}</span>
+   547→              {cat._count.listings > 0 && (<span className={`text-xs px-1.5 py-0.5 rounded-full ${selectedCategory === cat.id ? 'bg-white/20' : 'bg-gray-200'}`}>{cat._count.listings}</span>)}
+   548→            </button>
+   549→          ))}
+   550→        </div>
+   551→      </div>
+   552→    </div>
+   553→  )
+   554→}
+   555→
+   556→// ─── Filter Bar ───
+   557→function FilterBar({ universities }: { universities: University[] }) {
+   558→  const { selectedUniversity, setSelectedUniversity, selectedCondition, setSelectedCondition, sortBy, setSortBy, resetFilters } = useMarketplaceStore()
+   559→  const [showFilters, setShowFilters] = useState(false)
+   560→  return (
+   561→    <div className="bg-gray-50 border-b border-gray-100">
+   562→      <div className="max-w-7xl mx-auto px-4 py-3">
+   563→        <div className="flex items-center gap-3 flex-wrap">
+   564→          <button onClick={() => setShowFilters(!showFilters)} className="flex items-center gap-2 px-3 py-2 bg-white border border-gray-200 rounded-lg text-sm font-medium text-gray-700 hover:bg-gray-50 transition-colors">
+   565→            <SlidersHorizontal className="h-4 w-4" /> Filters
+   566→            {(selectedUniversity || selectedCondition) && <span className="w-2 h-2 bg-emerald-500 rounded-full" />}
+   567→          </button>
+   568→          <AnimatePresence>
+   569→            {showFilters && (
+   570→              <motion.div initial={{ opacity: 0, height: 0 }} animate={{ opacity: 1, height: 'auto' }} exit={{ opacity: 0, height: 0 }} className="flex items-center gap-2 flex-wrap">
+   571→                <Select value={selectedUniversity || 'all'} onValueChange={(v) => setSelectedUniversity(v === 'all' ? '' : v)}>
+   572→                  <SelectTrigger className="w-auto h-9 gap-1.5 text-sm border-gray-200 bg-white"><GraduationCap className="h-3.5 w-3.5 text-gray-500" /><SelectValue placeholder="University" /></SelectTrigger>
+   573→                  <SelectContent><SelectItem value="all">All Universities</SelectItem>{universities.map((uni) => <SelectItem key={uni.id} value={uni.id}>{uni.shortName} ({uni._count.listings})</SelectItem>)}</SelectContent>
+   574→                </Select>
+   575→                <Select value={selectedCondition || 'all'} onValueChange={(v) => setSelectedCondition(v === 'all' ? '' : v)}>
+   576→                  <SelectTrigger className="w-auto h-9 gap-1.5 text-sm border-gray-200 bg-white"><CheckCircle2 className="h-3.5 w-3.5 text-gray-500" /><SelectValue placeholder="Condition" /></SelectTrigger>
+   577→                  <SelectContent>{CONDITIONS.map((c) => <SelectItem key={c} value={c.toLowerCase().includes('all') ? 'all' : c}>{c}</SelectItem>)}</SelectContent>
+   578→                </Select>
+   579→                {(selectedUniversity || selectedCondition) && (<Button variant="ghost" size="sm" onClick={resetFilters} className="h-9 text-xs text-red-500 hover:text-red-600 hover:bg-red-50"><X className="h-3 w-3 mr-1" /> Clear</Button>)}
+   580→              </motion.div>
+   581→            )}
+   582→          </AnimatePresence>
+   583→          <div className="ml-auto">
+   584→            <Select value={sortBy} onValueChange={setSortBy}>
+   585→              <SelectTrigger className="w-auto h-9 gap-1.5 text-sm border-gray-200 bg-white"><ArrowUpDown className="h-3.5 w-3.5 text-gray-500" /><SelectValue /></SelectTrigger>
+   586→              <SelectContent><SelectItem value="newest">Newest first</SelectItem><SelectItem value="price_low">Price: Low to High</SelectItem><SelectItem value="price_high">Price: High to Low</SelectItem></SelectContent>
+   587→            </Select>
+   588→          </div>
+   589→        </div>
+   590→      </div>
+   591→    </div>
+   592→  )
+   593→}
+   594→
+   595→// ─── Listing Card ───
+   596→function ListingCard({ listing, onClick }: { listing: ListingDetail; onClick: () => void }) {
+   597→  const images = JSON.parse(listing.images || '[]') as string[]
+   598→  return (
+   599→    <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} whileHover={{ y: -2 }} transition={{ duration: 0.2 }}>
+   600→      <Card className="overflow-hidden cursor-pointer group border-gray-200 hover:shadow-lg hover:border-emerald-200 transition-all duration-300" onClick={onClick}>
+   601→        <div className="relative aspect-square bg-gray-100 overflow-hidden">
+   602→          {images[0] ? (
+   603→            <img src={images[0]} alt={listing.title} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300" loading="lazy" />
+   604→          ) : (
+   605→            <div className="w-full h-full flex items-center justify-center bg-gradient-to-br from-gray-50 to-gray-100">
+   606→              <div className="text-center p-4">{ICON_MAP[listing.category.icon]}<p className="text-xs text-gray-400 mt-2">{listing.category.name}</p></div>
+   607→            </div>
+   608→          )}
+   609→          <Badge className="absolute top-2 left-2 text-[10px] font-medium" style={{ backgroundColor: listing.category.color + 'DD', color: 'white' }}>{listing.condition}</Badge>
+   610→          <div className="absolute bottom-2 left-2">
+   611→            <span className={`text-sm font-bold ${listing.price === 0 ? 'bg-green-500' : 'bg-black/70'} text-white px-2 py-0.5 rounded-md backdrop-blur-sm`}>{formatPrice(listing.price)}</span>
+   612→          </div>
+   613→          {images.length > 1 && (
+   614→            <div className="absolute bottom-2 right-2 bg-black/60 text-white text-[10px] px-1.5 py-0.5 rounded-md">{images.length} photos</div>
+   615→          )}
+   616→        </div>
+   617→        <CardContent className="p-3">
+   618→          <h3 className="text-sm font-semibold text-gray-900 line-clamp-2 leading-snug min-h-[2.5em]">{listing.title}</h3>
+   619→          <div className="flex items-center gap-2 mt-2">
+   620→            <div className="flex items-center gap-1 text-gray-500">
+   621→              <MapPin className="h-3 w-3" /><span className="text-[11px] truncate">{listing.location}</span>
+   622→            </div>
+   623→            <span className="text-gray-300">·</span>
+   624→            <div className="flex items-center gap-1 text-gray-500">
+   625→              <Clock className="h-3 w-3" /><span className="text-[11px]">{timeAgo(listing.createdAt)}</span>
+   626→            </div>
+   627→          </div>
+   628→          <div className="flex items-center gap-2 mt-2">
+   629→            <Avatar className="h-5 w-5"><AvatarImage src={listing.seller.avatar} /><AvatarFallback className="text-[8px]">{listing.seller.name.charAt(0)}</AvatarFallback></Avatar>
+   630→            <span className="text-[11px] text-gray-500 truncate">{listing.seller.name}</span>
+   631→            <div className="ml-auto flex items-center gap-1 text-gray-400">
+   632→              <Eye className="h-3 w-3" /><span className="text-[10px]">{listing.views}</span>
+   633→            </div>
+   634→          </div>
+   635→        </CardContent>
+   636→      </Card>
+   637→    </motion.div>
+   638→  )
+   639→}
+   640→
+   641→// ─── Listing Grid ───
+   642→function ListingGrid({ listings, onSelectListing }: { listings: ListingDetail[]; onSelectListing: (l: ListingDetail) => void }) {
+   643→  const router = useRouter()
+   644→  if (listings.length === 0) {
+   645→    return (
+   646→      <div className="text-center py-16">
+   647→        <div className="w-16 h-16 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-4"><Search className="h-7 w-7 text-gray-400" /></div>
+   648→        <h3 className="text-lg font-semibold text-gray-900 mb-1">No listings found</h3>
+   649→        <p className="text-gray-500 text-sm">Try adjusting your search or filters</p>
+   650→      </div>
+   651→    )
+   652→  }
+   653→  return (
+   654→    <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-3 p-4">
+   655→      {listings.map((listing) => (
+   656→        <ListingCard key={listing.id} listing={listing} onClick={() => router.push(`/listing/${listing.id}`)} />
+   657→      ))}
+   658→    </div>
+   659→  )
+   660→}
+   661→
+   662→// ─── Create Listing Dialog ───
+   663→function CreateListingDialog({ categories, universities, onCreated }: { categories: Category[]; universities: University[]; onCreated: () => void }) {
+   664→  const { viewMode, setViewMode, currentUser } = useMarketplaceStore()
+   665→  const [title, setTitle] = useState('')
+   666→  const [description, setDescription] = useState('')
+   667→  const [price, setPrice] = useState('')
+   668→  const [categoryId, setCategoryId] = useState('')
+   669→  const [universityId, setUniversityId] = useState('')
+   670→  const [campus, setCampus] = useState('')
+   671→  const [location, setLocation] = useState('')
+   672→  const [condition, setCondition] = useState('Used')
+   673→  const [negotiable, setNegotiable] = useState(true)
+   674→  const [imageUrls, setImageUrls] = useState('')
+   675→  const [isSubmitting, setIsSubmitting] = useState(false)
+   676→
+   677→  const handleSubmit = async (e: React.FormEvent) => {
+   678→    e.preventDefault()
+   679→    if (!title || !description || !categoryId || !location) { toast.error('Please fill in all required fields'); return }
+   680→    setIsSubmitting(true)
+   681→    try {
+   682→      const images = imageUrls.split('\n').map((u) => u.trim()).filter(Boolean)
+   683→      const res = await fetch('/api/listings', {
+   684→        method: 'POST',
+   685→        headers: { 'Content-Type': 'application/json' },
+   686→        body: JSON.stringify({ title, description, price: parseFloat(price) || 0, categoryId, universityId: universityId || null, campus, location, condition, negotiable, images, sellerId: currentUser?.id || 'user-1' }),
+   687→      })
+   688→      if (res.ok) { toast.success('Listing created!'); setViewMode('browse'); onCreated() } else { toast.error('Failed to create listing') }
+   689→    } catch { toast.error('Failed to create listing') } finally { setIsSubmitting(false) }
+   690→  }
+   691→
+   692→  return (
+   693→    <Dialog open={viewMode === 'create'} onOpenChange={(open) => !open && setViewMode('browse')}>
+   694→      <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
+   695→        <DialogHeader>
+   696→          <DialogTitle className="text-xl flex items-center gap-2"><div className="w-8 h-8 bg-emerald-100 rounded-lg flex items-center justify-center"><Plus className="h-4 w-4 text-emerald-600" /></div>Create New Listing</DialogTitle>
+   697→          <DialogDescription className="sr-only">Create a new listing</DialogDescription>
+   698→        </DialogHeader>
+   699→        <form onSubmit={handleSubmit} className="space-y-5 mt-4">
+   700→          <div><Label className="text-sm font-medium">Photos (one URL per line)</Label><Textarea placeholder="https://example.com/photo.jpg" value={imageUrls} onChange={(e) => setImageUrls(e.target.value)} className="mt-1.5 min-h-[80px] text-sm" /></div>
+   701→          <div><Label className="text-sm font-medium">Title *</Label><Input placeholder="What are you selling?" value={title} onChange={(e) => setTitle(e.target.value)} className="mt-1.5" required /></div>
+   702→          <div><Label className="text-sm font-medium">Description *</Label><Textarea placeholder="Describe your item..." value={description} onChange={(e) => setDescription(e.target.value)} className="mt-1.5 min-h-[100px]" required /></div>
+   703→          <div className="grid grid-cols-2 gap-3">
+   704→            <div><Label className="text-sm font-medium">Price (ZAR)</Label><div className="relative mt-1.5"><span className="absolute left-3 top-1/2 -translate-y-1/2 text-sm text-gray-400 font-medium">R</span><Input type="number" placeholder="0" value={price} onChange={(e) => setPrice(e.target.value)} className="pl-8" min="0" /></div><label className="flex items-center gap-2 mt-2 cursor-pointer"><input type="checkbox" checked={negotiable} onChange={(e) => setNegotiable(e.target.checked)} className="rounded border-gray-300 text-emerald-600 focus:ring-emerald-500" /><span className="text-xs text-gray-600">Negotiable</span></label></div>
+   705→            <div><Label className="text-sm font-medium">Condition</Label><Select value={condition} onValueChange={setCondition}><SelectTrigger className="mt-1.5"><SelectValue /></SelectTrigger><SelectContent><SelectItem value="New">New</SelectItem><SelectItem value="Like New">Like New</SelectItem><SelectItem value="Good">Good</SelectItem><SelectItem value="Fair">Fair</SelectItem><SelectItem value="Used">Used</SelectItem></SelectContent></Select></div>
+   706→          </div>
+   707→          <div><Label className="text-sm font-medium">Category *</Label><Select value={categoryId} onValueChange={setCategoryId}><SelectTrigger className="mt-1.5"><SelectValue placeholder="Select category" /></SelectTrigger><SelectContent>{categories.map((cat) => <SelectItem key={cat.id} value={cat.id}><div className="flex items-center gap-2">{ICON_MAP_SM[cat.icon]}{cat.name}</div></SelectItem>)}</SelectContent></Select></div>
+   708→          <div className="grid grid-cols-2 gap-3">
+   709→            <div><Label className="text-sm font-medium">University</Label><Select value={universityId || 'none'} onValueChange={(v) => setUniversityId(v === 'none' ? '' : v)}><SelectTrigger className="mt-1.5"><SelectValue placeholder="Select" /></SelectTrigger><SelectContent><SelectItem value="none">None</SelectItem>{universities.map((uni) => <SelectItem key={uni.id} value={uni.id}>{uni.shortName} - {uni.name}</SelectItem>)}</SelectContent></Select></div>
+   710→            <div><Label className="text-sm font-medium">Campus</Label><Input placeholder="e.g., Upper Campus" value={campus} onChange={(e) => setCampus(e.target.value)} className="mt-1.5" /></div>
+   711→          </div>
+   712→          <div><Label className="text-sm font-medium">Location *</Label><Input placeholder="e.g., UCT, Rondebosch" value={location} onChange={(e) => setLocation(e.target.value)} className="mt-1.5" required /></div>
+   713→          <Button type="submit" disabled={isSubmitting} className="w-full bg-emerald-600 hover:bg-emerald-700 h-11 rounded-xl font-medium">{isSubmitting ? 'Creating...' : 'Publish Listing'}</Button>
+   714→        </form>
+   715→      </DialogContent>
+   716→    </Dialog>
+   717→  )
+   718→}
+   719→
+   720→// ─── Hero Banner ───
+   721→function HeroBanner() {
+   722→  return (
+   723→    <div className="bg-gradient-to-r from-emerald-600 via-emerald-500 to-teal-500 text-white">
+   724→      <div className="max-w-7xl mx-auto px-4 py-8 md:py-12">
+   725→        <div className="flex flex-col md:flex-row items-center justify-between gap-6">
+   726→          <div className="text-center md:text-left">
+   727→            <h2 className="text-2xl md:text-3xl font-bold mb-2">Student Marketplace</h2>
+   728→            <p className="text-emerald-100 text-sm md:text-base max-w-lg">Buy and sell textbooks, electronics, accommodation, and more with students across South Africa. Trusted by students at 13+ universities.</p>
+   729→            <div className="flex items-center justify-center md:justify-start gap-4 mt-4 text-sm">
+   730→              <span className="flex items-center gap-1.5 bg-white/15 px-3 py-1.5 rounded-full"><TrendingUp className="h-4 w-4" /> 27+ Active Listings</span>
+   731→              <span className="flex items-center gap-1.5 bg-white/15 px-3 py-1.5 rounded-full"><Shield className="h-4 w-4" /> Verified Students</span>
+   732→            </div>
+   733→          </div>
+   734→          <div className="hidden md:grid grid-cols-3 gap-3 text-center">
+   735→            {[{ icon: <BookOpen className="h-6 w-6" />, label: 'Textbooks', count: '6' }, { icon: <Smartphone className="h-6 w-6" />, label: 'Electronics', count: '6' }, { icon: <Home className="h-6 w-6" />, label: 'Accommodation', count: '3' }].map((item) => (
+   736→              <div key={item.label} className="bg-white/10 backdrop-blur-sm rounded-xl p-3"><div className="flex justify-center mb-1">{item.icon}</div><p className="text-xs font-medium">{item.label}</p><p className="text-lg font-bold">{item.count}</p></div>
+   737→            ))}
+   738→          </div>
+   739→        </div>
+   740→      </div>
+   741→    </div>
+   742→  )
+   743→}
+   744→
+   745→// ─── Footer ───
+   746→function Footer() {
+   747→  return (
+   748→    <footer className="border-t border-gray-200 bg-white mt-auto">
+   749→      <div className="max-w-7xl mx-auto px-4 py-8">
+   750→        <div className="grid grid-cols-2 md:grid-cols-4 gap-8">
+   751→          <div>
+   752→            <div className="flex items-center gap-2 mb-3"><div className="w-8 h-8 bg-emerald-600 rounded-lg flex items-center justify-center"><Tag className="h-4 w-4 text-white" /></div><span className="font-bold text-gray-900">StudentMarket</span></div>
+   753→            <p className="text-xs text-gray-500 leading-relaxed">South Africa&apos;s student-to-student marketplace.</p>
+   754→          </div>
+   755→          <div><h4 className="font-semibold text-sm text-gray-900 mb-3">Popular Categories</h4><ul className="space-y-1.5 text-xs text-gray-500"><li className="hover:text-emerald-600 cursor-pointer">Textbooks & Notes</li><li className="hover:text-emerald-600 cursor-pointer">Electronics</li><li className="hover:text-emerald-600 cursor-pointer">Accommodation</li><li className="hover:text-emerald-600 cursor-pointer">Clothing</li></ul></div>
+   756→          <div><h4 className="font-semibold text-sm text-gray-900 mb-3">Top Campuses</h4><ul className="space-y-1.5 text-xs text-gray-500"><li className="hover:text-emerald-600 cursor-pointer">UCT</li><li className="hover:text-emerald-600 cursor-pointer">Wits</li><li className="hover:text-emerald-600 cursor-pointer">Stellenbosch</li><li className="hover:text-emerald-600 cursor-pointer">CPUT</li></ul></div>
+   757→          <div><h4 className="font-semibold text-sm text-gray-900 mb-3">Support</h4><ul className="space-y-1.5 text-xs text-gray-500"><li className="hover:text-emerald-600 cursor-pointer">Help Centre</li><li className="hover:text-emerald-600 cursor-pointer">Safety Tips</li><li className="hover:text-emerald-600 cursor-pointer">Report a Problem</li><li className="hover:text-emerald-600 cursor-pointer">Terms & Conditions</li></ul></div>
+   758→        </div>
+   759→        <Separator className="my-6" /><p className="text-xs text-gray-400 text-center">Made with care for South African students.</p>
+   760→      </div>
+   761→    </footer>
+   762→  )
+   763→}
+   764→
+   765→// ─── Main Page ───
+   766→export default function MarketplacePageWrapper() {
+   767→  return (
+   768→    <Suspense fallback={<div className="min-h-screen bg-gray-50 flex items-center justify-center"><div className="text-emerald-600 font-semibold">Loading...</div></div>}>
+   769→      <MarketplacePage />
+   770→    </Suspense>
+   771→  )
+   772→}
+   773→
+   774→function MarketplacePage() {
+   775→  const { searchQuery, selectedCategory, selectedUniversity, selectedCondition, sortBy } = useMarketplaceStore()
+   776→
+   777→  const [listings, setListings] = useState<ListingDetail[]>([])
+   778→  const [categories, setCategories] = useState<Category[]>([])
+   779→  const [universities, setUniversities] = useState<University[]>([])
+   780→  const [storyGroups, setStoryGroups] = useState<StoryGroup[]>([])
+   781→  const [isLoading, setIsLoading] = useState(true)
+   782→  const [refreshKey, setRefreshKey] = useState(0)
+   783→
+   784→  const fetchListings = useCallback(async () => {
+   785→    setIsLoading(true)
+   786→    try {
+   787→      const params = new URLSearchParams()
+   788→      if (searchQuery) params.set('search', searchQuery)
+   789→      if (selectedCategory) params.set('categoryId', selectedCategory)
+   790→      if (selectedUniversity) params.set('universityId', selectedUniversity)
+   791→      if (selectedCondition) params.set('condition', selectedCondition)
+   792→      if (sortBy) params.set('sortBy', sortBy)
+   793→      const res = await fetch(`/api/listings?${params}`)
+   794→      if (res.ok) { const data = await res.json(); setListings(data.listings) }
+   795→    } catch { toast.error('Failed to load listings') } finally { setIsLoading(false) }
+   796→  }, [searchQuery, selectedCategory, selectedUniversity, selectedCondition, sortBy])
+   797→
+   798→  const fetchStories = useCallback(async () => {
+   799→    try {
+
+[showing lines 400-799 of 862; use offset=800 with limit to continue reading]

@@ -34,8 +34,15 @@ import {
   Briefcase, Coffee, Gift, ArrowUpDown, Send, User, GraduationCap,
   LayoutGrid, SlidersHorizontal, TrendingUp, CheckCircle2, Tag,
   Star, Shield, Mail, Lock, EyeOff, CirclePlus, Camera,
-  BadgeCheck, LogOut, MessageSquare, Settings,
+  BadgeCheck, LogOut, MessageSquare, Settings, ImagePlus, Upload, Trash2,
 } from 'lucide-react'
+import {
+  FileUploader,
+  FileInput,
+  FileUploaderContent,
+  FileUploaderItem,
+} from '@/components/ui/file-upload'
+import type { DropzoneOptions } from 'react-dropzone'
 
 const ICON_MAP: Record<string, React.ReactNode> = {
   'book-open': <BookOpen className="h-5 w-5" />,
@@ -671,33 +678,110 @@ function CreateListingDialog({ categories, universities, onCreated }: { categori
   const [location, setLocation] = useState('')
   const [condition, setCondition] = useState('Used')
   const [negotiable, setNegotiable] = useState(true)
-  const [imageUrls, setImageUrls] = useState('')
+  const [files, setFiles] = useState<File[]>([])
   const [isSubmitting, setIsSubmitting] = useState(false)
+  const [isUploading, setIsUploading] = useState(false)
+
+  const dropzone = {
+    accept: { 'image/*': ['.jpg', '.jpeg', '.png', '.gif', '.webp'] },
+    multiple: true,
+    maxFiles: 4,
+    maxSize: 5 * 1024 * 1024,
+  } satisfies DropzoneOptions
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     if (!title || !description || !categoryId || !location) { toast.error('Please fill in all required fields'); return }
     setIsSubmitting(true)
     try {
-      const images = imageUrls.split('\n').map((u) => u.trim()).filter(Boolean)
+      let imageUrls: string[] = []
+
+      // Upload files if any
+      if (files.length > 0) {
+        setIsUploading(true)
+        const formData = new FormData()
+        files.forEach((f) => formData.append('files', f))
+        const uploadRes = await fetch('/api/upload', { method: 'POST', body: formData })
+        if (uploadRes.ok) {
+          const uploadData = await uploadRes.json()
+          imageUrls = uploadData.urls
+        } else {
+          toast.error('Failed to upload images')
+          setIsUploading(false)
+          setIsSubmitting(false)
+          return
+        }
+      }
+
       const res = await fetch('/api/listings', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ title, description, price: parseFloat(price) || 0, categoryId, universityId: universityId || null, campus, location, condition, negotiable, images, sellerId: currentUser?.id || 'user-1' }),
+        body: JSON.stringify({ title, description, price: parseFloat(price) || 0, categoryId, universityId: universityId || null, campus, location, condition, negotiable, images: imageUrls, sellerId: currentUser?.id || 'user-1' }),
       })
-      if (res.ok) { toast.success('Listing created!'); setViewMode('browse'); onCreated() } else { toast.error('Failed to create listing') }
-    } catch { toast.error('Failed to create listing') } finally { setIsSubmitting(false) }
+      if (res.ok) {
+        toast.success('Listing created!')
+        setTitle(''); setDescription(''); setPrice(''); setCategoryId(''); setUniversityId(''); setCampus(''); setLocation(''); setCondition('Used'); setNegotiable(true); setFiles([])
+        setViewMode('browse'); onCreated()
+      } else { toast.error('Failed to create listing') }
+    } catch { toast.error('Failed to create listing') } finally { setIsSubmitting(false); setIsUploading(false) }
   }
 
   return (
-    <Dialog open={viewMode === 'create'} onOpenChange={(open) => !open && setViewMode('browse')}>
+    <Dialog open={viewMode === 'create'} onOpenChange={(open) => { if (!open) { setViewMode('browse'); setFiles([]) } }}>
       <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
         <DialogHeader>
           <DialogTitle className="text-xl flex items-center gap-2"><div className="w-8 h-8 bg-emerald-100 rounded-lg flex items-center justify-center"><Plus className="h-4 w-4 text-emerald-600" /></div>Create New Listing</DialogTitle>
           <DialogDescription className="sr-only">Create a new listing</DialogDescription>
         </DialogHeader>
         <form onSubmit={handleSubmit} className="space-y-5 mt-4">
-          <div><Label className="text-sm font-medium">Photos (one URL per line)</Label><Textarea placeholder="https://example.com/photo.jpg" value={imageUrls} onChange={(e) => setImageUrls(e.target.value)} className="mt-1.5 min-h-[80px] text-sm" /></div>
+          {/* Photo Upload */}
+          <div>
+            <Label className="text-sm font-medium mb-2 block">Photos</Label>
+            <FileUploader
+              value={files}
+              orientation="vertical"
+              onValueChange={setFiles}
+              dropzoneOptions={dropzone}
+              className="relative rounded-lg"
+            >
+              <FileInput className="outline-dashed outline-2 outline-primary/40 bg-muted/50 hover:bg-muted transition-colors rounded-xl">
+                <div className="flex flex-col items-center justify-center py-8 w-full">
+                  <div className="w-12 h-12 rounded-full bg-emerald-100 flex items-center justify-center mb-3">
+                    <Upload className="h-6 w-6 text-emerald-600" />
+                  </div>
+                  <p className="text-sm font-medium text-gray-700">
+                    <span className="text-emerald-600">Click to upload</span> or drag and drop
+                  </p>
+                  <p className="text-xs text-gray-400 mt-1">JPG, PNG, GIF or WEBP (max 5MB each, up to 4 photos)</p>
+                </div>
+              </FileInput>
+              <FileUploaderContent className="flex flex-wrap gap-3 mt-3">
+                {files.map((file, i) => (
+                  <FileUploaderItem
+                    key={`${file.name}-${file.lastModified}-${file.size}`}
+                    index={i}
+                    className="size-24 p-0 rounded-lg overflow-hidden border border-gray-200 shadow-sm"
+                    aria-roledescription={`file ${i + 1} containing ${file.name}`}
+                  >
+                    <div className="relative w-full h-full group/img">
+                      <img
+                        src={URL.createObjectURL(file)}
+                        alt={file.name}
+                        className="w-full h-full object-cover rounded-lg"
+                      />
+                      <div className="absolute inset-0 bg-black/0 group-hover/img:bg-black/30 transition-colors rounded-lg" />
+                      <div className="absolute bottom-1 left-1 right-1">
+                        <span className="text-[10px] text-white bg-black/50 rounded px-1 truncate block">
+                          {(file.size / 1024).toFixed(0)} KB
+                        </span>
+                      </div>
+                    </div>
+                  </FileUploaderItem>
+                ))}
+              </FileUploaderContent>
+            </FileUploader>
+          </div>
+
           <div><Label className="text-sm font-medium">Title *</Label><Input placeholder="What are you selling?" value={title} onChange={(e) => setTitle(e.target.value)} className="mt-1.5" required /></div>
           <div><Label className="text-sm font-medium">Description *</Label><Textarea placeholder="Describe your item..." value={description} onChange={(e) => setDescription(e.target.value)} className="mt-1.5 min-h-[100px]" required /></div>
           <div className="grid grid-cols-2 gap-3">
@@ -710,7 +794,9 @@ function CreateListingDialog({ categories, universities, onCreated }: { categori
             <div><Label className="text-sm font-medium">Campus</Label><Input placeholder="e.g., Upper Campus" value={campus} onChange={(e) => setCampus(e.target.value)} className="mt-1.5" /></div>
           </div>
           <div><Label className="text-sm font-medium">Location *</Label><Input placeholder="e.g., UCT, Rondebosch" value={location} onChange={(e) => setLocation(e.target.value)} className="mt-1.5" required /></div>
-          <Button type="submit" disabled={isSubmitting} className="w-full bg-emerald-600 hover:bg-emerald-700 h-11 rounded-xl font-medium">{isSubmitting ? 'Creating...' : 'Publish Listing'}</Button>
+          <Button type="submit" disabled={isSubmitting || isUploading} className="w-full bg-emerald-600 hover:bg-emerald-700 h-11 rounded-xl font-medium">
+            {isUploading ? <span className="flex items-center gap-2"><Upload className="h-4 w-4 animate-bounce" />Uploading photos...</span> : isSubmitting ? 'Creating...' : 'Publish Listing'}
+          </Button>
         </form>
       </DialogContent>
     </Dialog>

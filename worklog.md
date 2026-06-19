@@ -19,3 +19,23 @@ Stage Summary:
 - 27 listings, 10 users, 6 conversations, 14 stories seeded
 - Email validation supports: 219045678@mycput.ac.za format, sipho@uct.ac.za format, and 26+ SA domains
 - Chat system: conversation creation, message send/receive, unread tracking, real-time polling
+
+---
+Task ID: 2
+Agent: Main
+Task: Replace product listing image upload with drag-and-drop file uploader
+
+Work Log:
+- Installed react-dropzone dependency
+- Created /src/components/ui/file-upload.tsx with FileUploader, FileInput, FileUploaderContent, FileUploaderItem components
+- Created /api/upload route with file type validation, 5MB size limit, unique filename generation, saves to public/uploads/listings/
+- Updated CreateListingDialog in page.tsx: replaced textarea URL input with drag-and-drop FileUploader component
+- Added file preview thumbnails with size labels, remove button on hover, max 4 files
+- Added upload progress state with animated upload indicator
+- Build passes with zero errors, /api/upload route registered
+
+Stage Summary:
+- CreateListingDialog now uses a polished drag-and-drop image uploader matching the uilayouts file-upload pattern
+- Users can click to browse or drag-and-drop images (JPG, PNG, GIF, WEBP up to 5MB each, max 4 photos)
+- Images are uploaded to /api/upload which saves to public/uploads/listings/ and returns URLs
+- File previews show image thumbnails with size labels and hover-to-remove buttons
