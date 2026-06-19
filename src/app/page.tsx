@@ -107,24 +107,24 @@ function StoriesTray({ storyGroups, onStoryClick }: { storyGroups: StoryGroup[];
   const scrollRef = useRef<HTMLDivElement>(null)
 
   return (
-    <div className="border-b border-gray-100 bg-white">
-      <div className="max-w-7xl mx-auto px-4 py-3">
-        <div ref={scrollRef} className="flex gap-3 overflow-x-auto no-scrollbar">
+    <div className="border-b border-gray-100/60 bg-white/60 backdrop-blur-sm">
+      <div className="max-w-7xl mx-auto px-4 py-4">
+        <div ref={scrollRef} className="flex gap-4 overflow-x-auto no-scrollbar">
           {currentUser && (
-            <button onClick={() => setShowCreateStory(true)} className="flex flex-col items-center gap-1.5 shrink-0">
+            <button onClick={() => setShowCreateStory(true)} className="flex flex-col items-center gap-1.5 shrink-0 group/add">
               <div className="relative">
-                <div className="w-16 h-16 rounded-full bg-gray-100 flex items-center justify-center border-2 border-dashed border-gray-300">
-                  <CirclePlus className="h-6 w-6 text-emerald-600" />
+                <div className="w-[68px] h-[68px] rounded-full bg-gradient-to-br from-emerald-50 to-teal-50 flex items-center justify-center border-2 border-dashed border-emerald-300 group-hover/add:border-emerald-400 group-hover/add:shadow-lg group-hover/add:shadow-emerald-100 transition-all duration-300">
+                  <CirclePlus className="h-6 w-6 text-emerald-500 group-hover/add:scale-110 transition-transform" />
                 </div>
               </div>
-              <span className="text-[11px] font-medium text-gray-600 w-16 text-center truncate">Your Story</span>
+              <span className="text-[11px] font-semibold text-gray-600 w-16 text-center truncate group-hover/add:text-emerald-600 transition-colors">Your Story</span>
             </button>
           )}
           {!currentUser && (
             <button onClick={() => setViewMode('login')} className="flex flex-col items-center gap-1.5 shrink-0">
               <div className="relative">
-                <div className="w-16 h-16 rounded-full bg-gray-50 flex items-center justify-center border-2 border-dashed border-gray-300">
-                  <Camera className="h-6 w-6 text-gray-400" />
+                <div className="w-[68px] h-[68px] rounded-full bg-gray-50/80 flex items-center justify-center border-2 border-dashed border-gray-200">
+                  <Camera className="h-6 w-6 text-gray-300" />
                 </div>
               </div>
               <span className="text-[11px] font-medium text-gray-400 w-16 text-center truncate">Sign in</span>
@@ -133,11 +133,11 @@ function StoriesTray({ storyGroups, onStoryClick }: { storyGroups: StoryGroup[];
           {storyGroups.map((group) => (
             <button key={group.user.id} onClick={() => onStoryClick(group)} className="flex flex-col items-center gap-1.5 shrink-0 group/story">
               <div className="relative">
-                <div className="w-[68px] h-[68px] rounded-full p-[3px]" style={{ background: 'linear-gradient(135deg, #16a34a, #0891b2, #7c3aed, #e11d48)' }}>
+                <div className="w-[72px] h-[72px] rounded-full p-[3px] shadow-lg shadow-emerald-200/30" style={{ background: 'linear-gradient(135deg, #10b981, #06b6d4, #8b5cf6, #ec4899)' }}>
                   <div className="w-full h-full rounded-full bg-white p-[2px]">
                     <Avatar className="w-full h-full">
                       <AvatarImage src={group.user.avatar || ''} className="object-cover" />
-                      <AvatarFallback className="text-xs">{group.user.name.charAt(0)}</AvatarFallback>
+                      <AvatarFallback className="text-xs bg-gradient-to-br from-emerald-50 to-teal-50">{group.user.name.charAt(0)}</AvatarFallback>
                     </Avatar>
                   </div>
                 </div>
@@ -147,7 +147,7 @@ function StoriesTray({ storyGroups, onStoryClick }: { storyGroups: StoryGroup[];
                   </div>
                 )}
               </div>
-              <span className="text-[11px] font-medium text-gray-700 w-16 text-center truncate group-hover/story:text-emerald-600 transition-colors">
+              <span className="text-[11px] font-semibold text-gray-700 w-16 text-center truncate group-hover/story:text-emerald-600 transition-colors">
                 {group.user.name.split(' ')[0]}
               </span>
             </button>
@@ -388,7 +388,7 @@ function CreateStoryDialog({ onCreated }: { onCreated: () => void }) {
             <div><Label className="text-sm font-medium">Background</Label><div className="flex flex-wrap gap-2 mt-2">{GRADIENT_PRESETS.map((g, i) => (<button key={i} onClick={() => setSelectedGradient(g)} className={`w-10 h-10 rounded-full border-2 transition-all ${selectedGradient === g ? 'border-emerald-500 scale-110' : 'border-transparent'}`} style={{ background: g }} />))}</div></div>
           )}
 
-          <Button onClick={handleCreate} disabled={isSubmitting || (storyMode === 'photo' && !storyFile.length && !caption.trim())} className="w-full bg-emerald-600 hover:bg-emerald-700 rounded-xl">
+          <Button onClick={handleCreate} disabled={isSubmitting || (storyMode === 'photo' && !storyFile.length && !caption.trim())} className="w-full bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-700 hover:to-teal-700 rounded-xl shadow-lg shadow-emerald-200/40 font-semibold">
             {isSubmitting ? <span className="flex items-center gap-2"><Upload className="h-4 w-4 animate-bounce" />Posting...</span> : 'Post Story'}
           </Button>
         </div>
@@ -442,7 +442,7 @@ function LoginDialog() {
               <button type="button" onClick={() => setShowPassword(!showPassword)} className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600">{showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}</button>
             </div>
           </div>
-          <Button type="submit" disabled={isLoading} className="w-full bg-emerald-600 hover:bg-emerald-700 rounded-xl h-11 font-medium">{isLoading ? 'Signing in...' : 'Sign In'}</Button>
+          <Button type="submit" disabled={isLoading} className="w-full bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-700 hover:to-teal-700 rounded-xl h-11 font-semibold shadow-lg shadow-emerald-200/40">{isLoading ? 'Signing in...' : 'Sign In'}</Button>
           <div className="text-center text-sm">
             <span className="text-gray-500">Don&apos;t have an account? </span>
             <button type="button" onClick={() => setViewMode('signup')} className="text-emerald-600 font-semibold hover:underline">Sign Up</button>
@@ -537,7 +537,7 @@ function SignupDialog() {
             )}
           </div>
           <div><Label className="text-sm font-medium">Confirm Password *</Label><div className="relative mt-1.5"><Lock className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400" /><Input type={showPassword ? 'text' : 'password'} placeholder="Re-enter password" value={confirmPassword} onChange={(e) => setConfirmPassword(e.target.value)} className="pl-10" required /></div></div>
-          <Button type="submit" disabled={isLoading} className="w-full bg-emerald-600 hover:bg-emerald-700 rounded-xl h-11 font-medium">{isLoading ? 'Creating account...' : 'Create Account'}</Button>
+          <Button type="submit" disabled={isLoading} className="w-full bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-700 hover:to-teal-700 rounded-xl h-11 font-semibold shadow-lg shadow-emerald-200/40">{isLoading ? 'Creating account...' : 'Create Account'}</Button>
           <div className="text-center text-sm"><span className="text-gray-500">Already have an account? </span><button type="button" onClick={() => setViewMode('login')} className="text-emerald-600 font-semibold hover:underline">Sign In</button></div>
         </form>
       </DialogContent>
@@ -592,36 +592,36 @@ function Header() {
   }
 
   return (
-    <header className="sticky top-0 z-50 bg-white border-b border-gray-200 shadow-sm">
+    <header className="sticky top-0 z-50 glass border-b border-white/20 shadow-sm">
       <div className="max-w-7xl mx-auto px-4 py-3">
         <div className="flex items-center gap-3">
-          <div className="flex items-center gap-2 shrink-0 cursor-pointer" onClick={() => router.push('/')}>
-            <div className="w-9 h-9 bg-emerald-600 rounded-lg flex items-center justify-center"><Tag className="h-5 w-5 text-white" /></div>
+          <div className="flex items-center gap-2.5 shrink-0 cursor-pointer" onClick={() => router.push('/')}>
+            <div className="w-9 h-9 bg-gradient-to-br from-emerald-500 to-teal-600 rounded-xl flex items-center justify-center shadow-lg shadow-emerald-200/50"><Tag className="h-5 w-5 text-white" /></div>
             <div className="hidden sm:block">
               <h1 className="text-lg font-bold text-gray-900 leading-tight">StudentMarket</h1>
-              <p className="text-[10px] text-emerald-600 font-medium leading-tight">South Africa</p>
+              <p className="text-[10px] text-emerald-600 font-semibold leading-tight tracking-wide uppercase">South Africa</p>
             </div>
           </div>
 
           <div className="flex-1 max-w-2xl">
             <div className="relative">
-              <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400" />
-              <Input placeholder="Search textbooks, electronics, accommodation..." value={searchQuery} onChange={(e) => setSearchQuery(e.target.value)} className="pl-10 pr-4 h-10 bg-gray-50 border-gray-200 rounded-full text-sm focus:bg-white focus:border-emerald-400 focus:ring-emerald-400" />
+              <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400" />
+              <Input placeholder="Search textbooks, electronics, accommodation..." value={searchQuery} onChange={(e) => setSearchQuery(e.target.value)} className="pl-10 pr-4 h-10 bg-white/70 border-gray-200/80 rounded-xl text-sm focus:bg-white focus:border-emerald-400 focus:ring-emerald-400/30 shadow-sm" />
               {searchQuery && (<button onClick={() => setSearchQuery('')} className="absolute right-3 top-1/2 -translate-y-1/2"><X className="h-4 w-4 text-gray-400 hover:text-gray-600" /></button>)}
             </div>
           </div>
 
-          <div className="flex items-center gap-2">
+          <div className="flex items-center gap-1.5">
             {/* Notification Bell */}
             {currentUser && (
               <div className="relative">
                 <button
                   onClick={() => setShowNotifications(!showNotifications)}
-                  className="relative p-2 rounded-full hover:bg-gray-50 transition-colors"
+                  className="relative p-2 rounded-xl hover:bg-white/60 transition-all duration-200"
                 >
                   <Bell className="h-5 w-5 text-gray-600" />
                   {unreadCount > 0 && (
-                    <span className="absolute -top-0.5 -right-0.5 min-w-[18px] h-[18px] bg-red-500 text-white text-[10px] font-bold rounded-full flex items-center justify-center px-1 animate-pulse">
+                    <span className="absolute -top-0.5 -right-0.5 min-w-[18px] h-[18px] bg-gradient-to-r from-red-500 to-rose-500 text-white text-[10px] font-bold rounded-full flex items-center justify-center px-1 shadow-lg shadow-red-200/50">
                       {unreadCount > 9 ? '9+' : unreadCount}
                     </span>
                   )}
@@ -631,46 +631,49 @@ function Header() {
                 {showNotifications && (
                   <>
                     <div className="fixed inset-0 z-40" onClick={() => setShowNotifications(false)} />
-                    <div className="absolute right-0 top-full mt-1 w-80 bg-white rounded-xl shadow-lg border border-gray-200 z-50 overflow-hidden">
-                      <div className="px-4 py-3 border-b border-gray-100 flex items-center justify-between">
-                        <h3 className="text-sm font-semibold text-gray-900">Notifications</h3>
+                    <div className="absolute right-0 top-full mt-2 w-80 bg-white rounded-2xl shadow-xl shadow-gray-200/50 border border-gray-100 z-50 overflow-hidden">
+                      <div className="px-4 py-3 border-b border-gray-50 flex items-center justify-between bg-gradient-to-r from-emerald-50/50 to-transparent">
+                        <h3 className="text-sm font-bold text-gray-900">Notifications</h3>
                         {unreadCount > 0 && (
-                          <span className="text-xs text-emerald-600 font-medium">{unreadCount} unread</span>
+                          <span className="text-xs text-emerald-600 font-semibold bg-emerald-50 px-2 py-0.5 rounded-full">{unreadCount} unread</span>
                         )}
                       </div>
                       <div className="max-h-80 overflow-y-auto">
                         {notifications.length === 0 ? (
-                          <div className="px-4 py-8 text-center">
-                            <Bell className="h-8 w-8 text-gray-300 mx-auto mb-2" />
-                            <p className="text-sm text-gray-500">No new notifications</p>
+                          <div className="px-4 py-10 text-center">
+                            <div className="w-14 h-14 bg-emerald-50 rounded-full flex items-center justify-center mx-auto mb-3">
+                              <Bell className="h-6 w-6 text-emerald-400" />
+                            </div>
+                            <p className="text-sm font-medium text-gray-600">No new notifications</p>
+                            <p className="text-xs text-gray-400 mt-1">You&apos;re all caught up!</p>
                           </div>
                         ) : (
                           notifications.map((notif) => (
                             <button
                               key={notif.id}
                               onClick={() => handleMarkRead(notif.conversationId)}
-                              className="w-full px-4 py-3 text-left hover:bg-gray-50 flex items-start gap-3 border-b border-gray-50 transition-colors"
+                              className="w-full px-4 py-3 text-left hover:bg-emerald-50/40 flex items-start gap-3 border-b border-gray-50/80 transition-colors"
                             >
-                              <Avatar className="h-9 w-9 shrink-0">
+                              <Avatar className="h-9 w-9 shrink-0 ring-2 ring-emerald-100">
                                 <AvatarImage src={notif.sender.avatar || ''} />
-                                <AvatarFallback className="text-xs">{notif.sender.name.charAt(0)}</AvatarFallback>
+                                <AvatarFallback className="text-xs bg-emerald-50">{notif.sender.name.charAt(0)}</AvatarFallback>
                               </Avatar>
                               <div className="flex-1 min-w-0">
-                                <p className="text-sm font-medium text-gray-900">{notif.title}</p>
+                                <p className="text-sm font-semibold text-gray-900">{notif.title}</p>
                                 <p className="text-xs text-gray-500 truncate mt-0.5">{notif.body}</p>
                                 {notif.listing && (
-                                  <p className="text-[11px] text-emerald-600 mt-0.5 truncate">Re: {notif.listing.title}</p>
+                                  <p className="text-[11px] text-emerald-600 font-medium mt-0.5 truncate">Re: {notif.listing.title}</p>
                                 )}
                                 <p className="text-[10px] text-gray-400 mt-1">{timeAgo(notif.createdAt)}</p>
                               </div>
-                              <div className="w-2 h-2 bg-emerald-500 rounded-full shrink-0 mt-1.5" />
+                              <div className="w-2.5 h-2.5 bg-gradient-to-r from-emerald-400 to-teal-400 rounded-full shrink-0 mt-1.5 shadow-sm shadow-emerald-200" />
                             </button>
                           ))
                         )}
                       </div>
                       {unreadCount > 0 && (
-                        <div className="px-4 py-2 border-t border-gray-100 bg-gray-50">
-                          <button onClick={() => { router.push('/chat'); setShowNotifications(false) }} className="w-full text-center text-xs font-medium text-emerald-600 hover:text-emerald-700">
+                        <div className="px-4 py-2.5 border-t border-gray-50 bg-gray-50/50">
+                          <button onClick={() => { router.push('/chat'); setShowNotifications(false) }} className="w-full text-center text-xs font-semibold text-emerald-600 hover:text-emerald-700">
                             View all messages
                           </button>
                         </div>
@@ -685,7 +688,7 @@ function Header() {
             {currentUser && (
               <button
                 onClick={() => router.push('/chat')}
-                className="relative p-2 rounded-full hover:bg-gray-50 transition-colors"
+                className="relative p-2 rounded-xl hover:bg-white/60 transition-all duration-200"
               >
                 <MessageSquare className="h-5 w-5 text-gray-600" />
               </button>
@@ -694,37 +697,37 @@ function Header() {
             {currentUser ? (
               <>
                 {currentUser.verified && (
-                  <Badge className="bg-emerald-100 text-emerald-700 border-emerald-200 gap-1 text-xs hidden sm:flex">
+                  <Badge className="bg-emerald-50 text-emerald-700 border-emerald-200/60 gap-1 text-xs hidden sm:flex shadow-sm">
                     <Shield className="h-3 w-3" /> Verified
                   </Badge>
                 )}
                 <div className="relative">
-                  <button onClick={() => setShowUserMenu(!showUserMenu)} className="flex items-center gap-2 px-2 py-1.5 rounded-full hover:bg-gray-50 transition-colors">
-                    <Avatar className="h-7 w-7">
+                  <button onClick={() => setShowUserMenu(!showUserMenu)} className="flex items-center gap-2 px-2 py-1.5 rounded-xl hover:bg-white/60 transition-all duration-200">
+                    <Avatar className="h-8 w-8 ring-2 ring-emerald-100">
                       <AvatarImage src={currentUser.avatar || ''} />
-                      <AvatarFallback className="text-[10px]">{currentUser.name.charAt(0)}</AvatarFallback>
+                      <AvatarFallback className="text-[10px] bg-gradient-to-br from-emerald-50 to-teal-50">{currentUser.name.charAt(0)}</AvatarFallback>
                     </Avatar>
-                    <span className="hidden sm:inline text-sm font-medium text-gray-700">{currentUser.name.split(' ')[0]}</span>
+                    <span className="hidden sm:inline text-sm font-semibold text-gray-700">{currentUser.name.split(' ')[0]}</span>
                   </button>
 
                   {showUserMenu && (
-                    <div className="absolute right-0 top-full mt-1 w-60 bg-white rounded-xl shadow-lg border border-gray-200 py-2 z-50">
-                      <div className="px-4 py-3 border-b border-gray-100">
-                        <p className="text-sm font-semibold">{currentUser.name}</p>
+                    <div className="absolute right-0 top-full mt-2 w-60 bg-white rounded-2xl shadow-xl shadow-gray-200/50 border border-gray-100 py-2 z-50">
+                      <div className="px-4 py-3 border-b border-gray-50 bg-gradient-to-r from-emerald-50/50 to-transparent">
+                        <p className="text-sm font-bold">{currentUser.name}</p>
                         <p className="text-xs text-gray-500">{currentUser.email}</p>
-                        {currentUser.university && <p className="text-xs text-emerald-600 mt-0.5">{currentUser.university}</p>}
+                        {currentUser.university && <p className="text-xs text-emerald-600 font-medium mt-0.5">{currentUser.university}</p>}
                       </div>
-                      <button onClick={() => { router.push('/profile'); setShowUserMenu(false) }} className="w-full px-4 py-2.5 text-sm text-left hover:bg-gray-50 flex items-center gap-2.5">
-                        <Settings className="h-4 w-4 text-gray-500" /> My Profile
+                      <button onClick={() => { router.push('/profile'); setShowUserMenu(false) }} className="w-full px-4 py-2.5 text-sm text-left hover:bg-emerald-50/40 flex items-center gap-2.5 transition-colors">
+                        <Settings className="h-4 w-4 text-gray-400" /> My Profile
                       </button>
-                      <button onClick={() => { router.push('/chat'); setShowUserMenu(false) }} className="w-full px-4 py-2.5 text-sm text-left hover:bg-gray-50 flex items-center gap-2.5">
-                        <MessageSquare className="h-4 w-4 text-gray-500" /> Messages
+                      <button onClick={() => { router.push('/chat'); setShowUserMenu(false) }} className="w-full px-4 py-2.5 text-sm text-left hover:bg-emerald-50/40 flex items-center gap-2.5 transition-colors">
+                        <MessageSquare className="h-4 w-4 text-gray-400" /> Messages
                       </button>
-                      <button onClick={() => { setShowCreateStory(true); setShowUserMenu(false) }} className="w-full px-4 py-2.5 text-sm text-left hover:bg-gray-50 flex items-center gap-2.5">
-                        <Camera className="h-4 w-4 text-gray-500" /> Create Story
+                      <button onClick={() => { setShowCreateStory(true); setShowUserMenu(false) }} className="w-full px-4 py-2.5 text-sm text-left hover:bg-emerald-50/40 flex items-center gap-2.5 transition-colors">
+                        <Camera className="h-4 w-4 text-gray-400" /> Create Story
                       </button>
-                      <button onClick={() => { setViewMode('create'); setShowUserMenu(false) }} className="w-full px-4 py-2.5 text-sm text-left hover:bg-gray-50 flex items-center gap-2.5">
-                        <Plus className="h-4 w-4 text-gray-500" /> New Listing
+                      <button onClick={() => { setViewMode('create'); setShowUserMenu(false) }} className="w-full px-4 py-2.5 text-sm text-left hover:bg-emerald-50/40 flex items-center gap-2.5 transition-colors">
+                        <Plus className="h-4 w-4 text-gray-400" /> New Listing
                       </button>
                       <div className="border-t border-gray-100 mt-1 pt-1">
                         <button onClick={() => { logout(); setShowUserMenu(false); toast.success('Logged out'); router.push('/auth') }} className="w-full px-4 py-2.5 text-sm text-left hover:bg-red-50 text-red-600 flex items-center gap-2.5">
@@ -736,13 +739,13 @@ function Header() {
                 </div>
               </>
             ) : (
-              <Button onClick={() => setViewMode('login')} variant="outline" className="rounded-full gap-1.5 text-sm font-medium border-gray-200">
+              <Button onClick={() => setViewMode('login')} variant="outline" className="rounded-xl gap-1.5 text-sm font-medium border-gray-200/80 shadow-sm">
                 <User className="h-4 w-4" />
                 <span className="hidden sm:inline">Sign In</span>
               </Button>
             )}
 
-            <Button onClick={() => currentUser ? setViewMode('create') : setViewMode('signup')} className="bg-emerald-600 hover:bg-emerald-700 rounded-full gap-1.5 text-sm font-medium">
+            <Button onClick={() => currentUser ? setViewMode('create') : setViewMode('signup')} className="bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-700 hover:to-teal-700 rounded-xl gap-1.5 text-sm font-semibold shadow-lg shadow-emerald-200/50">
               <Plus className="h-4 w-4" />
               <span className="hidden sm:inline">Sell</span>
             </Button>
@@ -758,17 +761,17 @@ function Header() {
 function CategoryBar({ categories }: { categories: Category[] }) {
   const { selectedCategory, setSelectedCategory } = useMarketplaceStore()
   return (
-    <div className="border-b border-gray-100 bg-white">
+    <div className="border-b border-gray-100/60 bg-white/60 backdrop-blur-sm">
       <div className="max-w-7xl mx-auto px-4">
-        <div className="flex gap-1 py-2 overflow-x-auto no-scrollbar">
-          <button onClick={() => setSelectedCategory('')} className={`flex items-center gap-2 px-4 py-2 rounded-full text-sm font-medium whitespace-nowrap transition-all ${!selectedCategory ? 'bg-emerald-600 text-white shadow-md shadow-emerald-200' : 'bg-gray-100 text-gray-600 hover:bg-gray-200'}`}>
+        <div className="flex gap-2 py-2.5 overflow-x-auto no-scrollbar">
+          <button onClick={() => setSelectedCategory('')} className={`flex items-center gap-2 px-5 py-2 rounded-xl text-sm font-semibold whitespace-nowrap transition-all duration-300 ${!selectedCategory ? 'bg-gradient-to-r from-emerald-600 to-teal-600 text-white shadow-lg shadow-emerald-200/40' : 'bg-white text-gray-600 hover:bg-gray-50 hover:shadow-md border border-gray-100'}`}>
             <LayoutGrid className="h-4 w-4" /> All
           </button>
           {categories.map((cat) => (
-            <button key={cat.id} onClick={() => setSelectedCategory(selectedCategory === cat.id ? '' : cat.id)} className={`flex items-center gap-2 px-4 py-2 rounded-full text-sm font-medium whitespace-nowrap transition-all ${selectedCategory === cat.id ? 'text-white shadow-md' : 'bg-gray-100 text-gray-600 hover:bg-gray-200'}`} style={selectedCategory === cat.id ? { backgroundColor: cat.color } : undefined}>
+            <button key={cat.id} onClick={() => setSelectedCategory(selectedCategory === cat.id ? '' : cat.id)} className={`flex items-center gap-2 px-5 py-2 rounded-xl text-sm font-semibold whitespace-nowrap transition-all duration-300 border ${selectedCategory === cat.id ? 'text-white shadow-lg border-transparent' : 'bg-white text-gray-600 hover:bg-gray-50 hover:shadow-md border-gray-100'}`} style={selectedCategory === cat.id ? { backgroundColor: cat.color, borderColor: 'transparent' } : undefined}>
               {ICON_MAP[cat.icon]}
               <span className="hidden sm:inline">{cat.name}</span>
-              {cat._count.listings > 0 && (<span className={`text-xs px-1.5 py-0.5 rounded-full ${selectedCategory === cat.id ? 'bg-white/20' : 'bg-gray-200'}`}>{cat._count.listings}</span>)}
+              {cat._count.listings > 0 && (<span className={`text-xs px-2 py-0.5 rounded-lg ${selectedCategory === cat.id ? 'bg-white/20 backdrop-blur-sm' : 'bg-gray-100'}`}>{cat._count.listings}</span>)}
             </button>
           ))}
         </div>
@@ -782,31 +785,31 @@ function FilterBar({ universities }: { universities: University[] }) {
   const { selectedUniversity, setSelectedUniversity, selectedCondition, setSelectedCondition, sortBy, setSortBy, resetFilters } = useMarketplaceStore()
   const [showFilters, setShowFilters] = useState(false)
   return (
-    <div className="bg-gray-50 border-b border-gray-100">
+    <div className="bg-white/50 backdrop-blur-sm border-b border-gray-100/60">
       <div className="max-w-7xl mx-auto px-4 py-3">
         <div className="flex items-center gap-3 flex-wrap">
-          <button onClick={() => setShowFilters(!showFilters)} className="flex items-center gap-2 px-3 py-2 bg-white border border-gray-200 rounded-lg text-sm font-medium text-gray-700 hover:bg-gray-50 transition-colors">
+          <button onClick={() => setShowFilters(!showFilters)} className={`flex items-center gap-2 px-4 py-2 bg-white border rounded-xl text-sm font-medium transition-all duration-200 shadow-sm ${showFilters ? 'border-emerald-300 text-emerald-700 shadow-emerald-100' : 'border-gray-200/80 text-gray-700 hover:bg-gray-50 hover:shadow-md'}`}>
             <SlidersHorizontal className="h-4 w-4" /> Filters
-            {(selectedUniversity || selectedCondition) && <span className="w-2 h-2 bg-emerald-500 rounded-full" />}
+            {(selectedUniversity || selectedCondition) && <span className="w-2 h-2 bg-emerald-500 rounded-full shadow-sm shadow-emerald-300" />}
           </button>
           <AnimatePresence>
             {showFilters && (
               <motion.div initial={{ opacity: 0, height: 0 }} animate={{ opacity: 1, height: 'auto' }} exit={{ opacity: 0, height: 0 }} className="flex items-center gap-2 flex-wrap">
                 <Select value={selectedUniversity || 'all'} onValueChange={(v) => setSelectedUniversity(v === 'all' ? '' : v)}>
-                  <SelectTrigger className="w-auto h-9 gap-1.5 text-sm border-gray-200 bg-white"><GraduationCap className="h-3.5 w-3.5 text-gray-500" /><SelectValue placeholder="University" /></SelectTrigger>
+                  <SelectTrigger className="w-auto h-9 gap-1.5 text-sm border-gray-200/80 bg-white shadow-sm"><GraduationCap className="h-3.5 w-3.5 text-gray-500" /><SelectValue placeholder="University" /></SelectTrigger>
                   <SelectContent><SelectItem value="all">All Universities</SelectItem>{universities.map((uni) => <SelectItem key={uni.id} value={uni.id}>{uni.shortName} ({uni._count.listings})</SelectItem>)}</SelectContent>
                 </Select>
                 <Select value={selectedCondition || 'all'} onValueChange={(v) => setSelectedCondition(v === 'all' ? '' : v)}>
-                  <SelectTrigger className="w-auto h-9 gap-1.5 text-sm border-gray-200 bg-white"><CheckCircle2 className="h-3.5 w-3.5 text-gray-500" /><SelectValue placeholder="Condition" /></SelectTrigger>
+                  <SelectTrigger className="w-auto h-9 gap-1.5 text-sm border-gray-200/80 bg-white shadow-sm"><CheckCircle2 className="h-3.5 w-3.5 text-gray-500" /><SelectValue placeholder="Condition" /></SelectTrigger>
                   <SelectContent>{CONDITIONS.map((c) => <SelectItem key={c} value={c.toLowerCase().includes('all') ? 'all' : c}>{c}</SelectItem>)}</SelectContent>
                 </Select>
-                {(selectedUniversity || selectedCondition) && (<Button variant="ghost" size="sm" onClick={resetFilters} className="h-9 text-xs text-red-500 hover:text-red-600 hover:bg-red-50"><X className="h-3 w-3 mr-1" /> Clear</Button>)}
+                {(selectedUniversity || selectedCondition) && (<Button variant="ghost" size="sm" onClick={resetFilters} className="h-9 text-xs text-red-500 hover:text-red-600 hover:bg-red-50 rounded-lg"><X className="h-3 w-3 mr-1" /> Clear</Button>)}
               </motion.div>
             )}
           </AnimatePresence>
           <div className="ml-auto">
             <Select value={sortBy} onValueChange={setSortBy}>
-              <SelectTrigger className="w-auto h-9 gap-1.5 text-sm border-gray-200 bg-white"><ArrowUpDown className="h-3.5 w-3.5 text-gray-500" /><SelectValue /></SelectTrigger>
+              <SelectTrigger className="w-auto h-9 gap-1.5 text-sm border-gray-200/80 bg-white shadow-sm"><ArrowUpDown className="h-3.5 w-3.5 text-gray-500" /><SelectValue /></SelectTrigger>
               <SelectContent><SelectItem value="newest">Newest first</SelectItem><SelectItem value="price_low">Price: Low to High</SelectItem><SelectItem value="price_high">Price: High to Low</SelectItem></SelectContent>
             </Select>
           </div>
@@ -820,39 +823,41 @@ function FilterBar({ universities }: { universities: University[] }) {
 function ListingCard({ listing, onClick }: { listing: ListingDetail; onClick: () => void }) {
   const images = JSON.parse(listing.images || '[]') as string[]
   return (
-    <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} whileHover={{ y: -2 }} transition={{ duration: 0.2 }}>
-      <Card className="overflow-hidden cursor-pointer group border-gray-200 hover:shadow-lg hover:border-emerald-200 transition-all duration-300" onClick={onClick}>
-        <div className="relative aspect-square bg-gray-100 overflow-hidden">
+    <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} whileHover={{ y: -4 }} transition={{ duration: 0.3, ease: 'easeOut' }}>
+      <Card className="overflow-hidden cursor-pointer group border border-gray-200/80 hover:shadow-xl hover:shadow-gray-200/40 hover:border-emerald-200/60 transition-all duration-500 bg-white" onClick={onClick}>
+        <div className="relative aspect-square bg-gray-50 overflow-hidden rounded-t-2xl">
           {images[0] ? (
-            <img src={images[0]} alt={listing.title} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300" loading="lazy" />
+            <img src={images[0]} alt={listing.title} className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700 ease-out" loading="lazy" />
           ) : (
-            <div className="w-full h-full flex items-center justify-center bg-gradient-to-br from-gray-50 to-gray-100">
-              <div className="text-center p-4">{ICON_MAP[listing.category.icon]}<p className="text-xs text-gray-400 mt-2">{listing.category.name}</p></div>
+            <div className="w-full h-full flex items-center justify-center bg-gradient-to-br from-emerald-50/80 via-gray-50 to-teal-50/80">
+              <div className="text-center p-4 opacity-60 group-hover:opacity-80 transition-opacity">{ICON_MAP[listing.category.icon]}<p className="text-xs text-gray-400 mt-2 font-medium">{listing.category.name}</p></div>
             </div>
           )}
-          <Badge className="absolute top-2 left-2 text-[10px] font-medium" style={{ backgroundColor: listing.category.color + 'DD', color: 'white' }}>{listing.condition}</Badge>
-          <div className="absolute bottom-2 left-2">
-            <span className={`text-sm font-bold ${listing.price === 0 ? 'bg-green-500' : 'bg-black/70'} text-white px-2 py-0.5 rounded-md backdrop-blur-sm`}>{formatPrice(listing.price)}</span>
+          {/* Gradient overlay on hover */}
+          <div className="absolute inset-0 bg-gradient-to-t from-black/20 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
+          <Badge className="absolute top-2.5 left-2.5 text-[10px] font-semibold shadow-md" style={{ backgroundColor: listing.category.color + 'DD', color: 'white' }}>{listing.condition}</Badge>
+          <div className="absolute bottom-2.5 left-2.5">
+            <span className={`text-sm font-bold px-2.5 py-1 rounded-lg backdrop-blur-md shadow-sm ${listing.price === 0 ? 'bg-emerald-500/90' : 'bg-black/60 backdrop-blur-md'} text-white`}>{formatPrice(listing.price)}</span>
           </div>
           {images.length > 1 && (
-            <div className="absolute bottom-2 right-2 bg-black/60 text-white text-[10px] px-1.5 py-0.5 rounded-md">{images.length} photos</div>
+            <div className="absolute bottom-2.5 right-2.5 bg-black/50 backdrop-blur-md text-white text-[10px] px-2 py-1 rounded-lg font-medium shadow-sm">{images.length} photos</div>
           )}
         </div>
-        <CardContent className="p-3">
-          <h3 className="text-sm font-semibold text-gray-900 line-clamp-2 leading-snug min-h-[2.5em]">{listing.title}</h3>
-          <div className="flex items-center gap-2 mt-2">
-            <div className="flex items-center gap-1 text-gray-500">
+        <CardContent className="p-3.5">
+          <h3 className="text-sm font-semibold text-gray-900 line-clamp-2 leading-snug min-h-[2.5em] group-hover:text-emerald-800 transition-colors">{listing.title}</h3>
+          <div className="flex items-center gap-2 mt-2.5">
+            <div className="flex items-center gap-1 text-gray-400">
               <MapPin className="h-3 w-3" /><span className="text-[11px] truncate">{listing.location}</span>
             </div>
-            <span className="text-gray-300">·</span>
-            <div className="flex items-center gap-1 text-gray-500">
+            <span className="text-gray-200">·</span>
+            <div className="flex items-center gap-1 text-gray-400">
               <Clock className="h-3 w-3" /><span className="text-[11px]">{timeAgo(listing.createdAt)}</span>
             </div>
           </div>
-          <div className="flex items-center gap-2 mt-2">
-            <Avatar className="h-5 w-5"><AvatarImage src={listing.seller.avatar} /><AvatarFallback className="text-[8px]">{listing.seller.name.charAt(0)}</AvatarFallback></Avatar>
-            <span className="text-[11px] text-gray-500 truncate">{listing.seller.name}</span>
-            <div className="ml-auto flex items-center gap-1 text-gray-400">
+          <div className="flex items-center gap-2 mt-2.5">
+            <Avatar className="h-5 w-5 ring-1 ring-emerald-100"><AvatarImage src={listing.seller.avatar} /><AvatarFallback className="text-[8px] bg-emerald-50">{listing.seller.name.charAt(0)}</AvatarFallback></Avatar>
+            <span className="text-[11px] text-gray-500 truncate font-medium">{listing.seller.name}</span>
+            <div className="ml-auto flex items-center gap-1 text-gray-300">
               <Eye className="h-3 w-3" /><span className="text-[10px]">{listing.views}</span>
             </div>
           </div>
@@ -867,15 +872,15 @@ function ListingGrid({ listings, onSelectListing }: { listings: ListingDetail[];
   const router = useRouter()
   if (listings.length === 0) {
     return (
-      <div className="text-center py-16">
-        <div className="w-16 h-16 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-4"><Search className="h-7 w-7 text-gray-400" /></div>
-        <h3 className="text-lg font-semibold text-gray-900 mb-1">No listings found</h3>
-        <p className="text-gray-500 text-sm">Try adjusting your search or filters</p>
+      <div className="text-center py-20">
+        <div className="w-16 h-16 bg-emerald-50 rounded-2xl flex items-center justify-center mx-auto mb-4"><Search className="h-7 w-7 text-emerald-400" /></div>
+        <h3 className="text-lg font-bold text-gray-900 mb-1">No listings found</h3>
+        <p className="text-gray-400 text-sm">Try adjusting your search or filters</p>
       </div>
     )
   }
   return (
-    <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-3 p-4">
+    <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-4 p-4">
       {listings.map((listing) => (
         <ListingCard key={listing.id} listing={listing} onClick={() => router.push(`/listing/${listing.id}`)} />
       ))}
@@ -1011,7 +1016,7 @@ function CreateListingDialog({ categories, universities, onCreated }: { categori
             <div><Label className="text-sm font-medium">Campus</Label><Input placeholder="e.g., Upper Campus" value={campus} onChange={(e) => setCampus(e.target.value)} className="mt-1.5" /></div>
           </div>
           <div><Label className="text-sm font-medium">Location *</Label><Input placeholder="e.g., UCT, Rondebosch" value={location} onChange={(e) => setLocation(e.target.value)} className="mt-1.5" required /></div>
-          <Button type="submit" disabled={isSubmitting || isUploading} className="w-full bg-emerald-600 hover:bg-emerald-700 h-11 rounded-xl font-medium">
+          <Button type="submit" disabled={isSubmitting || isUploading} className="w-full bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-700 hover:to-teal-700 h-11 rounded-xl font-semibold shadow-lg shadow-emerald-200/40">
             {isUploading ? <span className="flex items-center gap-2"><Upload className="h-4 w-4 animate-bounce" />Uploading photos...</span> : isSubmitting ? 'Creating...' : 'Publish Listing'}
           </Button>
         </form>
@@ -1023,20 +1028,34 @@ function CreateListingDialog({ categories, universities, onCreated }: { categori
 // ─── Hero Banner ───
 function HeroBanner() {
   return (
-    <div className="bg-gradient-to-r from-emerald-600 via-emerald-500 to-teal-500 text-white">
-      <div className="max-w-7xl mx-auto px-4 py-8 md:py-12">
-        <div className="flex flex-col md:flex-row items-center justify-between gap-6">
+    <div className="relative bg-gradient-to-br from-emerald-600 via-emerald-500 to-teal-400 text-white animated-gradient overflow-hidden">
+      {/* Decorative elements */}
+      <div className="absolute inset-0">
+        <div className="absolute top-0 right-0 w-96 h-96 bg-white/5 rounded-full -translate-y-1/2 translate-x-1/4 blur-3xl" />
+        <div className="absolute bottom-0 left-0 w-64 h-64 bg-teal-300/10 rounded-full translate-y-1/3 -translate-x-1/4 blur-3xl" />
+        <div className="absolute top-1/2 left-1/2 w-48 h-48 bg-emerald-300/10 rounded-full -translate-x-1/2 -translate-y-1/2 blur-2xl" />
+      </div>
+      <div className="relative z-10 max-w-7xl mx-auto px-4 py-10 md:py-14">
+        <div className="flex flex-col md:flex-row items-center justify-between gap-8">
           <div className="text-center md:text-left">
-            <h2 className="text-2xl md:text-3xl font-bold mb-2">Student Marketplace</h2>
-            <p className="text-emerald-100 text-sm md:text-base max-w-lg">Buy and sell textbooks, electronics, accommodation, and more with students across South Africa. Trusted by students at 13+ universities.</p>
-            <div className="flex items-center justify-center md:justify-start gap-4 mt-4 text-sm">
-              <span className="flex items-center gap-1.5 bg-white/15 px-3 py-1.5 rounded-full"><TrendingUp className="h-4 w-4" /> 27+ Active Listings</span>
-              <span className="flex items-center gap-1.5 bg-white/15 px-3 py-1.5 rounded-full"><Shield className="h-4 w-4" /> Verified Students</span>
+            <div className="inline-flex items-center gap-2 bg-white/15 backdrop-blur-sm px-3 py-1.5 rounded-full text-xs font-semibold mb-4">
+              <span className="w-2 h-2 bg-emerald-300 rounded-full animate-pulse" />
+              13+ Universities &middot; Trusted Platform
+            </div>
+            <h2 className="text-3xl md:text-4xl font-extrabold mb-3 tracking-tight">Student Marketplace</h2>
+            <p className="text-emerald-100/90 text-sm md:text-base max-w-lg leading-relaxed">Buy and sell textbooks, electronics, accommodation, and more with students across South Africa.</p>
+            <div className="flex items-center justify-center md:justify-start gap-3 mt-5 text-sm">
+              <span className="flex items-center gap-1.5 bg-white/15 backdrop-blur-sm px-4 py-2 rounded-xl shadow-sm"><TrendingUp className="h-4 w-4" /> 27+ Active Listings</span>
+              <span className="flex items-center gap-1.5 bg-white/15 backdrop-blur-sm px-4 py-2 rounded-xl shadow-sm"><Shield className="h-4 w-4" /> Verified Students</span>
             </div>
           </div>
-          <div className="hidden md:grid grid-cols-3 gap-3 text-center">
+          <div className="hidden md:grid grid-cols-3 gap-4 text-center">
             {[{ icon: <BookOpen className="h-6 w-6" />, label: 'Textbooks', count: '6' }, { icon: <Smartphone className="h-6 w-6" />, label: 'Electronics', count: '6' }, { icon: <Home className="h-6 w-6" />, label: 'Accommodation', count: '3' }].map((item) => (
-              <div key={item.label} className="bg-white/10 backdrop-blur-sm rounded-xl p-3"><div className="flex justify-center mb-1">{item.icon}</div><p className="text-xs font-medium">{item.label}</p><p className="text-lg font-bold">{item.count}</p></div>
+              <div key={item.label} className="bg-white/10 backdrop-blur-sm rounded-2xl p-4 border border-white/10 hover:bg-white/15 transition-all duration-300">
+                <div className="flex justify-center mb-2 opacity-90">{item.icon}</div>
+                <p className="text-xs font-medium text-emerald-100">{item.label}</p>
+                <p className="text-xl font-bold mt-0.5">{item.count}</p>
+              </div>
             ))}
           </div>
         </div>
@@ -1048,16 +1067,16 @@ function HeroBanner() {
 // ─── Footer ───
 function Footer() {
   return (
-    <footer className="border-t border-gray-200 bg-white mt-auto">
-      <div className="max-w-7xl mx-auto px-4 py-8">
+    <footer className="border-t border-gray-100 bg-white/70 backdrop-blur-sm mt-auto">
+      <div className="max-w-7xl mx-auto px-4 py-10">
         <div className="grid grid-cols-2 md:grid-cols-4 gap-8">
           <div>
-            <div className="flex items-center gap-2 mb-3"><div className="w-8 h-8 bg-emerald-600 rounded-lg flex items-center justify-center"><Tag className="h-4 w-4 text-white" /></div><span className="font-bold text-gray-900">StudentMarket</span></div>
-            <p className="text-xs text-gray-500 leading-relaxed">South Africa&apos;s student-to-student marketplace.</p>
+            <div className="flex items-center gap-2.5 mb-4"><div className="w-9 h-9 bg-gradient-to-br from-emerald-500 to-teal-600 rounded-xl flex items-center justify-center shadow-sm"><Tag className="h-4 w-4 text-white" /></div><span className="font-bold text-gray-900">StudentMarket</span></div>
+            <p className="text-xs text-gray-500 leading-relaxed">South Africa&apos;s student-to-student marketplace. Trusted by thousands.</p>
           </div>
-          <div><h4 className="font-semibold text-sm text-gray-900 mb-3">Popular Categories</h4><ul className="space-y-1.5 text-xs text-gray-500"><li className="hover:text-emerald-600 cursor-pointer">Textbooks & Notes</li><li className="hover:text-emerald-600 cursor-pointer">Electronics</li><li className="hover:text-emerald-600 cursor-pointer">Accommodation</li><li className="hover:text-emerald-600 cursor-pointer">Clothing</li></ul></div>
-          <div><h4 className="font-semibold text-sm text-gray-900 mb-3">Top Campuses</h4><ul className="space-y-1.5 text-xs text-gray-500"><li className="hover:text-emerald-600 cursor-pointer">UCT</li><li className="hover:text-emerald-600 cursor-pointer">Wits</li><li className="hover:text-emerald-600 cursor-pointer">Stellenbosch</li><li className="hover:text-emerald-600 cursor-pointer">CPUT</li></ul></div>
-          <div><h4 className="font-semibold text-sm text-gray-900 mb-3">Support</h4><ul className="space-y-1.5 text-xs text-gray-500"><li className="hover:text-emerald-600 cursor-pointer">Help Centre</li><li className="hover:text-emerald-600 cursor-pointer">Safety Tips</li><li className="hover:text-emerald-600 cursor-pointer">Report a Problem</li><li className="hover:text-emerald-600 cursor-pointer">Terms & Conditions</li></ul></div>
+          <div><h4 className="font-bold text-sm text-gray-900 mb-4">Popular Categories</h4><ul className="space-y-2 text-xs text-gray-500"><li className="hover:text-emerald-600 cursor-pointer transition-colors">Textbooks & Notes</li><li className="hover:text-emerald-600 cursor-pointer transition-colors">Electronics</li><li className="hover:text-emerald-600 cursor-pointer transition-colors">Accommodation</li><li className="hover:text-emerald-600 cursor-pointer transition-colors">Clothing</li></ul></div>
+          <div><h4 className="font-bold text-sm text-gray-900 mb-4">Top Campuses</h4><ul className="space-y-2 text-xs text-gray-500"><li className="hover:text-emerald-600 cursor-pointer transition-colors">UCT</li><li className="hover:text-emerald-600 cursor-pointer transition-colors">Wits</li><li className="hover:text-emerald-600 cursor-pointer transition-colors">Stellenbosch</li><li className="hover:text-emerald-600 cursor-pointer transition-colors">CPUT</li></ul></div>
+          <div><h4 className="font-bold text-sm text-gray-900 mb-4">Support</h4><ul className="space-y-2 text-xs text-gray-500"><li className="hover:text-emerald-600 cursor-pointer transition-colors">Help Centre</li><li className="hover:text-emerald-600 cursor-pointer transition-colors">Safety Tips</li><li className="hover:text-emerald-600 cursor-pointer transition-colors">Report a Problem</li><li className="hover:text-emerald-600 cursor-pointer transition-colors">Terms & Conditions</li></ul></div>
         </div>
         <Separator className="my-6" /><p className="text-xs text-gray-400 text-center">Made with care for South African students.</p>
       </div>
@@ -1157,8 +1176,8 @@ function MarketplacePage() {
         <HeroBanner />
         <main className="flex-1">
           {isLoading ? (
-            <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-3 p-4">
-              {Array.from({ length: 12 }).map((_, i) => <Card key={i} className="overflow-hidden"><Skeleton className="aspect-square" /><CardContent className="p-3 space-y-2"><Skeleton className="h-4 w-3/4" /><Skeleton className="h-3 w-1/2" /></CardContent></Card>)}
+            <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-4 p-4">
+              {Array.from({ length: 12 }).map((_, i) => <Card key={i} className="overflow-hidden border border-gray-100"><Skeleton className="aspect-square rounded-none" /><CardContent className="p-3.5 space-y-2"><Skeleton className="h-4 w-3/4 rounded-lg" /><Skeleton className="h-3 w-1/2 rounded-lg" /></CardContent></Card>)}
             </div>
           ) : (
             <ListingGrid listings={listings} onSelectListing={() => {}} />

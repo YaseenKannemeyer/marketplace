@@ -1,0 +1,711 @@
+     1→     1→'use client'
+     2→     2→
+     3→     3→import { useState, useEffect } from 'react'
+     4→     4→import { useRouter } from 'next/navigation'
+     5→     5→import { Button } from '@/components/ui/button'
+     6→     6→import { Input } from '@/components/ui/input'
+     7→     7→import { Badge } from '@/components/ui/badge'
+     8→     8→import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
+     9→     9→import { Separator } from '@/components/ui/separator'
+    10→    10→import { Skeleton } from '@/components/ui/skeleton'
+    11→    11→import { Textarea } from '@/components/ui/textarea'
+    12→    12→import { Label } from '@/components/ui/label'
+    13→    13→import { Card, CardContent } from '@/components/ui/card'
+    14→    14→import { toast } from 'sonner'
+    15→    15→import { useMarketplaceStore, type AuthUser } from '@/store/marketplace'
+    16→    16→import {
+    17→    17→  ArrowLeft, User, Mail, Phone, GraduationCap, MapPin,
+    18→    18→  Shield, Camera, Edit3, Save, Lock, Eye, EyeOff,
+    19→    19→  ImagePlus, X, CheckCircle2, BookOpen, ShoppingBag,
+    20→    20→  MessageSquare, ChevronRight, Upload,
+    21→    21→} from 'lucide-react'
+    22→    22→import {
+    23→    23→  FileUploader,
+    24→    24→  FileInput,
+    25→    25→  FileUploaderContent,
+    26→    26→  FileUploaderItem,
+    27→    27→} from '@/components/ui/file-upload'
+    28→    28→import type { DropzoneOptions } from 'react-dropzone'
+    29→    29→
+    30→    30→export default function ProfilePage() {
+    31→    31→  const router = useRouter()
+    32→    32→  const { currentUser, setCurrentUser, logout } = useMarketplaceStore()
+    33→    33→
+    34→    34→  const [activeTab, setActiveTab] = useState<'profile' | 'password' | 'photos'>('profile')
+    35→    35→
+    36→    36→  // Profile form state
+    37→    37→  const [name, setName] = useState('')
+    38→    38→  const [bio, setBio] = useState('')
+    39→    39→  const [phone, setPhone] = useState('')
+    40→    40→  const [university, setUniversity] = useState('')
+    41→    41→  const [campus, setCampus] = useState('')
+    42→    42→  const [avatarUrl, setAvatarUrl] = useState('')
+    43→    43→  const [isSaving, setIsSaving] = useState(false)
+    44→    44→  const [isEditing, setIsEditing] = useState(false)
+    45→    45→
+    46→    46→  // Password form state
+    47→    47→  const [currentPassword, setCurrentPassword] = useState('')
+    48→    48→  const [newPassword, setNewPassword] = useState('')
+    49→    49→  const [confirmPassword, setConfirmPassword] = useState('')
+    50→    50→  const [showCurrentPw, setShowCurrentPw] = useState(false)
+    51→    51→  const [showNewPw, setShowNewPw] = useState(false)
+    52→    52→  const [isSavingPassword, setIsSavingPassword] = useState(false)
+    53→    53→
+    54→    54→  // Profile images
+    55→    55→  const [profileImages, setProfileImages] = useState<string[]>([])
+    56→    56→
+    57→    57→  // Avatar upload
+    58→    58→  const [avatarFile, setAvatarFile] = useState<File[]>([])
+    59→    59→  const [isUploadingAvatar, setIsUploadingAvatar] = useState(false)
+    60→    60→
+    61→    61→  // Gallery photo upload
+    62→    62→  const [galleryFiles, setGalleryFiles] = useState<File[]>([])
+    63→    63→  const [isUploadingGallery, setIsUploadingGallery] = useState(false)
+    64→    64→
+    65→    65→  // Profile stats
+    66→    66→  const [profileStats, setProfileStats] = useState<{
+    67→    67→    listings: number
+    68→    68→    sentMessages: number
+    69→    69→    receivedMessages: number
+    70→    70→    conversations: number
+    71→    71→    createdAt: string
+    72→    72→  } | null>(null)
+    73→    73→
+    74→    74→  // Load profile data
+    75→    75→  useEffect(() => {
+    76→    76→    if (currentUser) {
+    77→    77→      setName(currentUser.name)
+    78→    78→      setBio(currentUser.bio || '')
+    79→    79→      setPhone(currentUser.phone || '')
+    80→    80→      setUniversity(currentUser.university || '')
+    81→    81→      setCampus(currentUser.campus || '')
+    82→    82→      setAvatarUrl(currentUser.avatar || '')
+    83→    83→      setProfileImages(JSON.parse(currentUser.profileImages || '[]'))
+    84→    84→
+    85→    85→      // Fetch profile stats
+    86→    86→      fetch(`/api/profile?userId=${currentUser.id}`)
+    87→    87→        .then(r => r.json())
+    88→    88→        .then(data => {
+    89→    89→          if (data._count) {
+    90→    90→            setProfileStats({
+    91→    91→              listings: data._count.listings,
+    92→    92→              sentMessages: data._count.sentMessages,
+    93→    93→              receivedMessages: data._count.receivedMessages,
+    94→    94→              conversations: data._count.buyerConversations + data._count.sellerConversations,
+    95→    95→              createdAt: data.createdAt,
+    96→    96→            })
+    97→    97→          }
+    98→    98→        })
+    99→    99→        .catch(() => {})
+   100→   100→    } else {
+   101→   101→      router.push('/auth')
+   102→   102→    }
+   103→   103→  }, [currentUser, router])
+   104→   104→
+   105→   105→  if (!currentUser) {
+   106→   106→    return (
+   107→   107→      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+   108→   108→        <div className="text-center">
+   109→   109→          <User className="h-16 w-16 text-gray-300 mx-auto mb-4" />
+   110→   110→          <h2 className="text-xl font-semibold text-gray-900 mb-2">Please Sign In</h2>
+   111→   111→          <p className="text-gray-500 mb-6">Redirecting to login...</p>
+   112→   112→        </div>
+   113→   113→      </div>
+   114→   114→    )
+   115→   115→  }
+   116→   116→
+   117→   117→  const handleSaveProfile = async () => {
+   118→   118→    if (!name.trim()) { toast.error('Name is required'); return }
+   119→   119→    setIsSaving(true)
+   120→   120→    try {
+   121→   121→      const res = await fetch('/api/profile', {
+   122→   122→        method: 'PUT',
+   123→   123→        headers: { 'Content-Type': 'application/json' },
+   124→   124→        body: JSON.stringify({
+   125→   125→          userId: currentUser.id,
+   126→   126→          name: name.trim(),
+   127→   127→          bio,
+   128→   128→          phone,
+   129→   129→          university,
+   130→   130→          campus,
+   131→   131→          avatar: avatarUrl,
+   132→   132→        }),
+   133→   133→      })
+   134→   134→      if (res.ok) {
+   135→   135→        const updated = await res.json()
+   136→   136→        setCurrentUser(updated)
+   137→   137→        setIsEditing(false)
+   138→   138→        toast.success('Profile updated!')
+   139→   139→      } else {
+   140→   140→        const data = await res.json()
+   141→   141→        toast.error(data.error || 'Failed to update profile')
+   142→   142→      }
+   143→   143→    } catch {
+   144→   144→      toast.error('Failed to update profile')
+   145→   145→    } finally {
+   146→   146→      setIsSaving(false)
+   147→   147→    }
+   148→   148→  }
+   149→   149→
+   150→   150→  const handleChangePassword = async (e: React.FormEvent) => {
+   151→   151→    e.preventDefault()
+   152→   152→    if (newPassword !== confirmPassword) { toast.error('Passwords do not match'); return }
+   153→   153→    setIsSavingPassword(true)
+   154→   154→    try {
+   155→   155→      const res = await fetch('/api/profile/password', {
+   156→   156→        method: 'PUT',
+   157→   157→        headers: { 'Content-Type': 'application/json' },
+   158→   158→        body: JSON.stringify({
+   159→   159→          userId: currentUser.id,
+   160→   160→          currentPassword,
+   161→   161→          newPassword,
+   162→   162→        }),
+   163→   163→      })
+   164→   164→      if (res.ok) {
+   165→   165→        toast.success('Password updated!')
+   166→   166→        setCurrentPassword('')
+   167→   167→        setNewPassword('')
+   168→   168→        setConfirmPassword('')
+   169→   169→      } else {
+   170→   170→        const data = await res.json()
+   171→   171→        toast.error(data.error || 'Failed to update password')
+   172→   172→      }
+   173→   173→    } catch {
+   174→   174→      toast.error('Failed to update password')
+   175→   175→    } finally {
+   176→   176→      setIsSavingPassword(false)
+   177→   177→    }
+   178→   178→  }
+   179→   179→
+   180→   180→  const addProfileImage = () => {
+   181→   181→    if (profileImages.length >= 6) { toast.error('Maximum 6 photos allowed'); return }
+   182→   182→  }
+   183→   183→
+   184→   184→  const removeProfileImage = (index: number) => {
+   185→   185→    setProfileImages(prev => prev.filter((_, i) => i !== index))
+   186→   186→  }
+   187→   187→
+   188→   188→  const saveProfileImages = async () => {
+   189→   189→    let finalImages = [...profileImages]
+   190→   190→
+   191→   191→    // Upload new gallery files if any
+   192→   192→    if (galleryFiles.length > 0) {
+   193→   193→      setIsUploadingGallery(true)
+   194→   194→      try {
+   195→   195→        const formData = new FormData()
+   196→   196→        galleryFiles.forEach(f => formData.append('files', f))
+   197→   197→        formData.append('folder', 'profiles')
+   198→   198→        const uploadRes = await fetch('/api/upload', { method: 'POST', body: formData })
+   199→   199→        if (uploadRes.ok) {
+   200→   200→          const data = await uploadRes.json()
+   201→   201→          finalImages = [...finalImages, ...data.urls]
+   202→   202→        } else {
+   203→   203→          toast.error('Failed to upload photos')
+   204→   204→          setIsUploadingGallery(false)
+   205→   205→          return
+   206→   206→        }
+   207→   207→      } catch {
+   208→   208→        toast.error('Failed to upload photos')
+   209→   209→        setIsUploadingGallery(false)
+   210→   210→        return
+   211→   211→      }
+   212→   212→    }
+   213→   213→
+   214→   214→    try {
+   215→   215→      const res = await fetch('/api/profile', {
+   216→   216→        method: 'PUT',
+   217→   217→        headers: { 'Content-Type': 'application/json' },
+   218→   218→        body: JSON.stringify({ userId: currentUser.id, profileImages: finalImages }),
+   219→   219→      })
+   220→   220→      if (res.ok) {
+   221→   221→        const updated = await res.json()
+   222→   222→        setCurrentUser(updated)
+   223→   223→        setProfileImages(finalImages)
+   224→   224→        setGalleryFiles([])
+   225→   225→        toast.success('Photos updated!')
+   226→   226→      }
+   227→   227→    } catch {
+   228→   228→      toast.error('Failed to update photos')
+   229→   229→    } finally {
+   230→   230→      setIsUploadingGallery(false)
+   231→   231→    }
+   232→   232→  }
+   233→   233→
+   234→   234→  const uploadAvatar = async (fileToUpload: File) => {
+   235→   235→    setIsUploadingAvatar(true)
+   236→   236→    try {
+   237→   237→      const formData = new FormData()
+   238→   238→      formData.append('files', fileToUpload)
+   239→   239→      formData.append('folder', 'avatars')
+   240→   240→      const uploadRes = await fetch('/api/upload', { method: 'POST', body: formData })
+   241→   241→      if (uploadRes.ok) {
+   242→   242→        const data = await uploadRes.json()
+   243→   243→        const newUrl = data.urls[0]
+   244→   244→        setAvatarUrl(newUrl)
+   245→   245→        // Auto-save avatar
+   246→   246→        const res = await fetch('/api/profile', {
+   247→   247→          method: 'PUT',
+   248→   248→          headers: { 'Content-Type': 'application/json' },
+   249→   249→          body: JSON.stringify({ userId: currentUser.id, avatar: newUrl }),
+   250→   250→        })
+   251→   251→        if (res.ok) {
+   252→   252→          const updated = await res.json()
+   253→   253→          setCurrentUser(updated)
+   254→   254→          toast.success('Profile picture updated!')
+   255→   255→        }
+   256→   256→      } else {
+   257→   257→        toast.error('Failed to upload profile picture')
+   258→   258→      }
+   259→   259→    } catch {
+   260→   260→      toast.error('Failed to upload profile picture')
+   261→   261→    } finally {
+   262→   262→      setAvatarFile([])
+   263→   263→      setIsUploadingAvatar(false)
+   264→   264→    }
+   265→   265→  }
+   266→   266→
+   267→   267→  const SA_UNIVERSITIES = ['UCT', 'Wits', 'Stellenbosch', 'UP', 'UKZN', 'UJ', 'Rhodes', 'NWU', 'UFS', 'UL', 'CPUT', 'DUT', 'TUT', 'UNISA', 'Other']
+   268→   268→
+   269→   269→  const passwordStrength = (pw: string) => {
+   270→   270→    let score = 0
+   271→   271→    if (pw.length >= 8) score++
+   272→   272→    if (/[A-Z]/.test(pw)) score++
+   273→   273→    if (/[0-9]/.test(pw)) score++
+   274→   274→    if (/[^A-Za-z0-9]/.test(pw)) score++
+   275→   275→    return { score, label: score <= 1 ? 'Weak' : score <= 2 ? 'Fair' : score <= 3 ? 'Good' : 'Strong', color: score <= 1 ? 'bg-red-500' : score <= 2 ? 'bg-yellow-500' : score <= 3 ? 'bg-emerald-500' : 'bg-emerald-700' }
+   276→   276→  }
+   277→   277→
+   278→   278→  const avatarDropzone = {
+   279→   279→    accept: { 'image/*': ['.jpg', '.jpeg', '.png', '.gif', '.webp'] },
+   280→   280→    multiple: false,
+   281→   281→    maxFiles: 1,
+   282→   282→    maxSize: 5 * 1024 * 1024,
+   283→   283→  } satisfies DropzoneOptions
+   284→   284→
+   285→   285→  const galleryDropzone = {
+   286→   286→    accept: { 'image/*': ['.jpg', '.jpeg', '.png', '.gif', '.webp'] },
+   287→   287→    multiple: true,
+   288→   288→    maxFiles: 6,
+   289→   289→    maxSize: 5 * 1024 * 1024,
+   290→   290→  } satisfies DropzoneOptions
+   291→   291→
+   292→   292→  return (
+   293→   293→    <div className="min-h-screen bg-gray-50">
+   294→   294→      {/* Top Bar */}
+   295→   295→      <div className="sticky top-0 z-50 bg-white border-b border-gray-200 shadow-sm">
+   296→   296→        <div className="max-w-4xl mx-auto px-4 py-3 flex items-center gap-3">
+   297→   297→          <button onClick={() => router.push('/')} className="flex items-center gap-2 text-gray-600 hover:text-gray-900">
+   298→   298→            <ArrowLeft className="h-5 w-5" />
+   299→   299→            <span className="text-sm font-medium">Back</span>
+   300→   300→          </button>
+   301→   301→          <h1 className="text-lg font-bold text-gray-900 flex-1 text-center">My Profile</h1>
+   302→   302→        </div>
+   303→   303→      </div>
+   304→   304→
+   305→   305→      <div className="max-w-4xl mx-auto px-4 py-6">
+   306→   306→        {/* Profile Header Card */}
+   307→   307→        <Card className="overflow-hidden border-0 shadow-lg">
+   308→   308→          {/* Cover */}
+   309→   309→          <div className="h-32 bg-gradient-to-r from-emerald-600 via-emerald-500 to-teal-500 relative">
+   310→   310→            <div className="absolute inset-0 bg-black/10" />
+   311→   311→          </div>
+   312→   312→          {/* Avatar + Info */}
+   313→   313→          <div className="px-6 pb-6 -mt-12">
+   314→   314→            <div className="flex flex-col sm:flex-row items-start sm:items-end gap-4">
+   315→   315→              <div className="relative">
+   316→   316→                <Avatar className="h-24 w-24 border-4 border-white shadow-lg">
+   317→   317→                  <AvatarImage src={avatarUrl} />
+   318→   318→                  <AvatarFallback className="text-2xl bg-emerald-100 text-emerald-700">{name.charAt(0)}</AvatarFallback>
+   319→   319→                </Avatar>
+   320→   320→                {currentUser.verified && (
+   321→   321→                  <div className="absolute -bottom-1 -right-1 w-7 h-7 bg-blue-500 rounded-full flex items-center justify-center border-2 border-white">
+   322→   322→                    <CheckCircle2 className="h-4 w-4 text-white" />
+   323→   323→                  </div>
+   324→   324→                )}
+   325→   325→              </div>
+   326→   326→              <div className="flex-1">
+   327→   327→                <div className="flex items-center gap-2">
+   328→   328→                  <h2 className="text-xl font-bold text-gray-900">{name}</h2>
+   329→   329→                  {currentUser.verified && (
+   330→   330→                    <Badge className="bg-emerald-100 text-emerald-700 border-emerald-200 gap-1 text-xs">
+   331→   331→                      <Shield className="h-3 w-3" /> Verified Student
+   332→   332→                    </Badge>
+   333→   333→                  )}
+   334→   334→                </div>
+   335→   335→                <p className="text-sm text-gray-500 mt-0.5">{currentUser.email}</p>
+   336→   336→                <div className="flex flex-wrap gap-3 mt-2 text-xs text-gray-500">
+   337→   337→                  {university && (
+   338→   338→                    <span className="flex items-center gap-1 bg-emerald-50 text-emerald-700 px-2 py-0.5 rounded-full">
+   339→   339→                      <GraduationCap className="h-3 w-3" /> {university}
+   340→   340→                    </span>
+   341→   341→                  )}
+   342→   342→                  {campus && (
+   343→   343→                    <span className="flex items-center gap-1 bg-gray-100 text-gray-600 px-2 py-0.5 rounded-full">
+   344→   344→                      <MapPin className="h-3 w-3" /> {campus}
+   345→   345→                    </span>
+   346→   346→                  )}
+   347→   347→                </div>
+   348→   348→              </div>
+   349→   349→              <Button
+   350→   350→                variant="outline"
+   351→   351→                onClick={() => { logout(); toast.success('Logged out'); router.push('/auth') }}
+   352→   352→                className="text-red-600 border-red-200 hover:bg-red-50 hover:text-red-700 rounded-xl text-sm"
+   353→   353→              >
+   354→   354→                Sign Out
+   355→   355→              </Button>
+   356→   356→            </div>
+   357→   357→          </div>
+   358→   358→        </Card>
+   359→   359→
+   360→   360→        {/* Stats */}
+   361→   361→        {profileStats && (
+   362→   362→          <div className="grid grid-cols-4 gap-3 mt-4">
+   363→   363→            {[
+   364→   364→              { icon: <ShoppingBag className="h-4 w-4 text-emerald-600" />, label: 'Listings', value: profileStats.listings },
+   365→   365→              { icon: <MessageSquare className="h-4 w-4 text-blue-600" />, label: 'Chats', value: profileStats.conversations },
+   366→   366→              { icon: <BookOpen className="h-4 w-4 text-purple-600" />, label: 'Messages', value: profileStats.sentMessages + profileStats.receivedMessages },
+   367→   367→              { icon: <Shield className="h-4 w-4 text-amber-600" />, label: 'Joined', value: new Date(profileStats.createdAt).toLocaleDateString('en-ZA', { month: 'short', year: 'numeric' }) },
+   368→   368→            ].map(stat => (
+   369→   369→              <Card key={stat.label} className="border-0 shadow-sm">
+   370→   370→                <CardContent className="p-3 text-center">
+   371→   371→                  <div className="flex justify-center mb-1">{stat.icon}</div>
+   372→   372→                  <p className="text-lg font-bold text-gray-900">{stat.value}</p>
+   373→   373→                  <p className="text-[10px] text-gray-500 uppercase tracking-wide">{stat.label}</p>
+   374→   374→                </CardContent>
+   375→   375→              </Card>
+   376→   376→            ))}
+   377→   377→          </div>
+   378→   378→        )}
+   379→   379→
+   380→   380→        {/* Tabs */}
+   381→   381→        <div className="flex gap-1 mt-6 bg-gray-100 p-1 rounded-xl">
+   382→   382→          {[
+   383→   383→            { id: 'profile' as const, label: 'Edit Profile', icon: <Edit3 className="h-4 w-4" /> },
+   384→   384→            { id: 'password' as const, label: 'Password', icon: <Lock className="h-4 w-4" /> },
+   385→   385→            { id: 'photos' as const, label: 'Photos', icon: <Camera className="h-4 w-4" /> },
+   386→   386→          ].map(tab => (
+   387→   387→            <button
+   388→   388→              key={tab.id}
+   389→   389→              onClick={() => setActiveTab(tab.id)}
+   390→   390→              className={`flex-1 flex items-center justify-center gap-2 py-2.5 rounded-lg text-sm font-medium transition-all ${
+   391→   391→                activeTab === tab.id ? 'bg-white text-gray-900 shadow-sm' : 'text-gray-500 hover:text-gray-700'
+   392→   392→              }`}
+   393→   393→            >
+   394→   394→              {tab.icon}
+   395→   395→              <span className="hidden sm:inline">{tab.label}</span>
+   396→   396→            </button>
+   397→   397→          ))}
+   398→   398→        </div>
+   399→   399→
+   400→   400→        {/* Tab Content */}
+   401→   401→        <Card className="mt-4 border-0 shadow-sm">
+   402→   402→          <CardContent className="p-6">
+   403→   403→            {activeTab === 'profile' && (
+   404→   404→              <div className="space-y-5">
+   405→   405→                <div className="flex items-center justify-between">
+   406→   406→                  <h3 className="text-lg font-semibold text-gray-900">Personal Information</h3>
+   407→   407→                  {!isEditing ? (
+   408→   408→                    <Button variant="outline" onClick={() => setIsEditing(true)} className="gap-2 rounded-xl text-sm">
+   409→   409→                      <Edit3 className="h-4 w-4" /> Edit
+   410→   410→                    </Button>
+   411→   411→                  ) : (
+   412→   412→                    <div className="flex gap-2">
+   413→   413→                      <Button variant="ghost" onClick={() => {
+   414→   414→                        setIsEditing(false)
+   415→   415→                        setName(currentUser.name)
+   416→   416→                        setBio(currentUser.bio || '')
+   417→   417→                        setPhone(currentUser.phone || '')
+   418→   418→                      }} className="rounded-xl text-sm">Cancel</Button>
+   419→   419→                      <Button onClick={handleSaveProfile} disabled={isSaving} className="bg-emerald-600 hover:bg-emerald-700 gap-2 rounded-xl text-sm">
+   420→   420→                        <Save className="h-4 w-4" /> {isSaving ? 'Saving...' : 'Save'}
+   421→   421→                      </Button>
+   422→   422→                    </div>
+   423→   423→                  )}
+   424→   424→                </div>
+   425→   425→
+   426→   426→                {/* Avatar Upload */}
+   427→   427→                <div>
+   428→   428→                  <Label className="text-sm font-medium text-gray-700">Profile Picture</Label>
+   429→   429→                  <div className="mt-3 flex items-center gap-5">
+   430→   430→                    <div className="relative">
+   431→   431→                      <Avatar className="h-20 w-20 border-4 border-gray-100">
+   432→   432→                        <AvatarImage src={avatarUrl} />
+   433→   433→                        <AvatarFallback className="text-2xl bg-emerald-100 text-emerald-700">{name.charAt(0)}</AvatarFallback>
+   434→   434→                      </Avatar>
+   435→   435→                      {isEditing && (
+   436→   436→                        <div className="absolute -bottom-1 -right-1 w-7 h-7 bg-emerald-600 rounded-full flex items-center justify-center border-2 border-white shadow-sm">
+   437→   437→                          <Camera className="h-3.5 w-3.5 text-white" />
+   438→   438→                        </div>
+   439→   439→                      )}
+   440→   440→                    </div>
+   441→   441→                    {isEditing && (
+   442→   442→                      <div className="flex-1">
+   443→   443→                        <FileUploader
+   444→   444→                          value={avatarFile}
+   445→   445→                          orientation="vertical"
+   446→   446→                          onValueChange={(files) => {
+   447→   447→                            setAvatarFile(files)
+   448→   448→                            if (files.length > 0) uploadAvatar(files[0])
+   449→   449→                          }}
+   450→   450→                          dropzoneOptions={avatarDropzone}
+   451→   451→                          className="relative"
+   452→   452→                        >
+   453→   453→                          <FileInput className="outline-dashed outline-2 outline-emerald-300/50 bg-emerald-50/50 hover:bg-emerald-50 transition-colors rounded-xl">
+   454→   454→                            <div className="flex items-center gap-3 py-4 px-4 w-full">
+   455→   455→                              <div className="w-10 h-10 rounded-full bg-emerald-100 flex items-center justify-center shrink-0">
+   456→   456→                                {isUploadingAvatar ? (
+   457→   457→                                  <Upload className="h-5 w-5 text-emerald-600 animate-bounce" />
+   458→   458→                                ) : (
+   459→   459→                                  <Upload className="h-5 w-5 text-emerald-600" />
+   460→   460→                                )}
+   461→   461→                              </div>
+   462→   462→                              <div>
+   463→   463→                                <p className="text-sm font-medium text-gray-700">
+   464→   464→                                  <span className="text-emerald-600">{isUploadingAvatar ? 'Uploading...' : 'Click to upload'}</span> or drag and drop
+   465→   465→                                </p>
+   466→   466→                                <p className="text-xs text-gray-400 mt-0.5">JPG, PNG, GIF or WEBP (max 5MB)</p>
+   467→   467→                              </div>
+   468→   468→                            </div>
+   469→   469→                          </FileInput>
+   470→   470→                          <FileUploaderContent>
+   471→   471→                            {avatarFile.map((file, i) => (
+   472→   472→                              <FileUploaderItem
+   473→   473→                                key={`avatar-${file.name}-${file.lastModified}`}
+   474→   474→                                index={i}
+   475→   475→                                className="size-16 p-0 rounded-lg overflow-hidden border"
+   476→   476→                              >
+   477→   477→                                <img
+   478→   478→                                  src={URL.createObjectURL(file)}
+   479→   479→                                  alt={file.name}
+   480→   480→                                  className="w-full h-full object-cover rounded-lg"
+   481→   481→                                />
+   482→   482→                              </FileUploaderItem>
+   483→   483→                            ))}
+   484→   484→                          </FileUploaderContent>
+   485→   485→                        </FileUploader>
+   486→   486→                      </div>
+   487→   487→                    )}
+   488→   488→                  </div>
+   489→   489→                </div>
+   490→   490→
+   491→   491→                {/* Name */}
+   492→   492→                <div>
+   493→   493→                  <Label className="text-sm font-medium text-gray-700">Full Name</Label>
+   494→   494→                  <Input value={name} onChange={e => setName(e.target.value)} disabled={!isEditing} className="mt-1.5" />
+   495→   495→                </div>
+   496→   496→
+   497→   497→                {/* Email (read-only) */}
+   498→   498→                <div>
+   499→   499→                  <Label className="text-sm font-medium text-gray-700">Email</Label>
+   500→   500→                  <div className="flex items-center gap-2 mt-1.5">
+   501→   501→                    <Input value={currentUser.email} disabled className="bg-gray-50" />
+   502→   502→                    <Mail className="h-4 w-4 text-gray-400 shrink-0" />
+   503→   503→                  </div>
+   504→   504→                  <p className="text-xs text-gray-400 mt-1">Email cannot be changed</p>
+   505→   505→                </div>
+   506→   506→
+   507→   507→                {/* Phone */}
+   508→   508→                <div>
+   509→   509→                  <Label className="text-sm font-medium text-gray-700">Phone Number</Label>
+   510→   510→                  <div className="relative mt-1.5">
+   511→   511→                    <Phone className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400" />
+   512→   512→                    <Input value={phone} onChange={e => setPhone(e.target.value)} disabled={!isEditing} placeholder="+27 XX XXX XXXX" className="pl-10" />
+   513→   513→                  </div>
+   514→   514→                </div>
+   515→   515→
+   516→   516→                {/* University */}
+   517→   517→                <div className="grid grid-cols-2 gap-4">
+   518→   518→                  <div>
+   519→   519→                    <Label className="text-sm font-medium text-gray-700">University</Label>
+   520→   520→                    <Input value={university} onChange={e => setUniversity(e.target.value)} disabled={!isEditing} placeholder="e.g., UCT" className="mt-1.5" />
+   521→   521→                  </div>
+   522→   522→                  <div>
+   523→   523→                    <Label className="text-sm font-medium text-gray-700">Campus</Label>
+   524→   524→                    <Input value={campus} onChange={e => setCampus(e.target.value)} disabled={!isEditing} placeholder="e.g., Upper Campus" className="mt-1.5" />
+   525→   525→                  </div>
+   526→   526→                </div>
+   527→   527→
+   528→   528→                {/* Bio */}
+   529→   529→                <div>
+   530→   530→                  <Label className="text-sm font-medium text-gray-700">Bio</Label>
+   531→   531→                  <Textarea
+   532→   532→                    value={bio}
+   533→   533→                    onChange={e => setBio(e.target.value)}
+   534→   534→                    disabled={!isEditing}
+   535→   535→                    placeholder="Tell others about yourself..."
+   536→   536→                    className="mt-1.5 min-h-[100px]"
+   537→   537→                    maxLength={300}
+   538→   538→                  />
+   539→   539→                  <p className="text-xs text-gray-400 mt-1 text-right">{bio.length}/300</p>
+   540→   540→                </div>
+   541→   541→              </div>
+   542→   542→            )}
+   543→   543→
+   544→   544→            {activeTab === 'password' && (
+   545→   545→              <form onSubmit={handleChangePassword} className="space-y-5">
+   546→   546→                <div>
+   547→   547→                  <h3 className="text-lg font-semibold text-gray-900 mb-1">Change Password</h3>
+   548→   548→                  <p className="text-sm text-gray-500">Update your account password</p>
+   549→   549→                </div>
+   550→   550→
+   551→   551→                <div>
+   552→   552→                  <Label className="text-sm font-medium text-gray-700">Current Password</Label>
+   553→   553→                  <div className="relative mt-1.5">
+   554→   554→                    <Lock className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400" />
+   555→   555→                    <Input
+   556→   556→                      type={showCurrentPw ? 'text' : 'password'}
+   557→   557→                      value={currentPassword}
+   558→   558→                      onChange={e => setCurrentPassword(e.target.value)}
+   559→   559→                      className="pl-10 pr-10"
+   560→   560→                      required
+   561→   561→                    />
+   562→   562→                    <button type="button" onClick={() => setShowCurrentPw(!showCurrentPw)} className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400">
+   563→   563→                      {showCurrentPw ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+   564→   564→                    </button>
+   565→   565→                  </div>
+   566→   566→                </div>
+   567→   567→
+   568→   568→                <div>
+   569→   569→                  <Label className="text-sm font-medium text-gray-700">New Password</Label>
+   570→   570→                  <div className="relative mt-1.5">
+   571→   571→                    <Lock className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400" />
+   572→   572→                    <Input
+   573→   573→                      type={showNewPw ? 'text' : 'password'}
+   574→   574→                      value={newPassword}
+   575→   575→                      onChange={e => setNewPassword(e.target.value)}
+   576→   576→                      className="pl-10 pr-10"
+   577→   577→                      placeholder="Min 8 chars, 1 uppercase, 1 number"
+   578→   578→                      required
+   579→   579→                    />
+   580→   580→                    <button type="button" onClick={() => setShowNewPw(!showNewPw)} className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400">
+   581→   581→                      {showNewPw ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+   582→   582→                    </button>
+   583→   583→                  </div>
+   584→   584→                  {newPassword && (
+   585→   585→                    <div className="mt-2 flex items-center gap-2">
+   586→   586→                      <div className="flex-1 flex gap-1">
+   587→   587→                        {[1, 2, 3, 4].map(i => (
+   588→   588→                          <div key={i} className={`h-1 flex-1 rounded-full ${i <= passwordStrength(newPassword).score ? passwordStrength(newPassword).color : 'bg-gray-200'}`} />
+   589→   589→                        ))}
+   590→   590→                      </div>
+   591→   591→                      <span className="text-xs text-gray-500">{passwordStrength(newPassword).label}</span>
+   592→   592→                    </div>
+   593→   593→                  )}
+   594→   594→                </div>
+   595→   595→
+   596→   596→                <div>
+   597→   597→                  <Label className="text-sm font-medium text-gray-700">Confirm New Password</Label>
+   598→   598→                  <div className="relative mt-1.5">
+   599→   599→                    <Lock className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400" />
+   600→   600→                    <Input
+   601→   601→                      type={showNewPw ? 'text' : 'password'}
+   602→   602→                      value={confirmPassword}
+   603→   603→                      onChange={e => setConfirmPassword(e.target.value)}
+   604→   604→                      className="pl-10"
+   605→   605→                      required
+   606→   606→                    />
+   607→   607→                  </div>
+   608→   608→                  {confirmPassword && newPassword && confirmPassword !== newPassword && (
+   609→   609→                    <p className="text-xs text-red-500 mt-1">Passwords do not match</p>
+   610→   610→                  )}
+   611→   611→                </div>
+   612→   612→
+   613→   613→                <Button type="submit" disabled={isSavingPassword} className="w-full bg-emerald-600 hover:bg-emerald-700 rounded-xl h-11 font-medium">
+   614→   614→                  {isSavingPassword ? 'Updating...' : 'Update Password'}
+   615→   615→                </Button>
+   616→   616→              </form>
+   617→   617→            )}
+   618→   618→
+   619→   619→            {activeTab === 'photos' && (
+   620→   620→              <div className="space-y-5">
+   621→   621→                <div>
+   622→   622→                  <h3 className="text-lg font-semibold text-gray-900 mb-1">Profile Photos</h3>
+   623→   623→                  <p className="text-sm text-gray-500">Add up to 6 photos to your profile gallery</p>
+   624→   624→                </div>
+   625→   625→
+   626→   626→                {/* Upload dropzone */}
+   627→   627→                {profileImages.length + galleryFiles.length < 6 && (
+   628→   628→                  <FileUploader
+   629→   629→                    value={galleryFiles}
+   630→   630→                    orientation="vertical"
+   631→   631→                    onValueChange={setGalleryFiles}
+   632→   632→                    dropzoneOptions={galleryDropzone}
+   633→   633→                    className="relative rounded-lg"
+   634→   634→                  >
+   635→   635→                    <FileInput className="outline-dashed outline-2 outline-emerald-300/50 bg-emerald-50/50 hover:bg-emerald-50 transition-colors rounded-xl">
+   636→   636→                      <div className="flex flex-col items-center justify-center py-6 w-full">
+   637→   637→                        <div className="w-12 h-12 rounded-full bg-emerald-100 flex items-center justify-center mb-3">
+   638→   638→                          <Upload className="h-6 w-6 text-emerald-600" />
+   639→   639→                        </div>
+   640→   640→                        <p className="text-sm font-medium text-gray-700">
+   641→   641→                          <span className="text-emerald-600">Click to upload</span> or drag and drop
+   642→   642→                        </p>
+   643→   643→                        <p className="text-xs text-gray-400 mt-1">JPG, PNG, GIF or WEBP (max 5MB each)</p>
+   644→   644→                      </div>
+   645→   645→                    </FileInput>
+   646→   646→                    <FileUploaderContent className="flex flex-wrap gap-3 mt-3">
+   647→   647→                      {galleryFiles.map((file, i) => (
+   648→   648→                        <FileUploaderItem
+   649→   649→                          key={`gallery-${file.name}-${file.lastModified}`}
+   650→   650→                          index={i}
+   651→   651→                          className="size-24 p-0 rounded-lg overflow-hidden border border-gray-200 shadow-sm"
+   652→   652→                        >
+   653→   653→                          <div className="relative w-full h-full group/img">
+   654→   654→                            <img
+   655→   655→                              src={URL.createObjectURL(file)}
+   656→   656→                              alt={file.name}
+   657→   657→                              className="w-full h-full object-cover rounded-lg"
+   658→   658→                            />
+   659→   659→                            <div className="absolute inset-0 bg-black/0 group-hover/img:bg-black/30 transition-colors rounded-lg" />
+   660→   660→                            <div className="absolute bottom-1 left-1 right-1">
+   661→   661→                              <span className="text-[10px] text-white bg-black/50 rounded px-1 truncate block">
+   662→   662→                                {(file.size / 1024).toFixed(0)} KB
+   663→   663→                              </span>
+   664→   664→                            </div>
+   665→   665→                          </div>
+   666→   666→                        </FileUploaderItem>
+   667→   667→                      ))}
+   668→   668→                    </FileUploaderContent>
+   669→   669→                  </FileUploader>
+   670→   670→                )}
+   671→   671→
+   672→   672→                {/* Photo grid - saved + pending */}
+   673→   673→                <div className="grid grid-cols-3 gap-3">
+   674→   674→                  {profileImages.map((img, i) => (
+   675→   675→                    <div key={`saved-${i}`} className="relative aspect-square rounded-xl overflow-hidden group">
+   676→   676→                      <img src={img} alt="" className="w-full h-full object-cover" />
+   677→   677→                      <button
+   678→   678→                        onClick={() => removeProfileImage(i)}
+   679→   679→                        className="absolute top-1.5 right-1.5 w-7 h-7 bg-red-500 text-white rounded-full flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity"
+   680→   680→                      >
+   681→   681→                        <X className="h-4 w-4" />
+   682→   682→                      </button>
+   683→   683→                    </div>
+   684→   684→                  ))}
+   685→   685→                </div>
+   686→   686→
+   687→   687→                {(profileImages.length > 0 || galleryFiles.length > 0) && (
+   688→   688→                  <Button
+   689→   689→                    onClick={saveProfileImages}
+   690→   690→                    disabled={isUploadingGallery}
+   691→   691→                    className="w-full bg-emerald-600 hover:bg-emerald-700 rounded-xl h-11 font-medium"
+   692→   692→                  >
+   693→   693→                    {isUploadingGallery ? (
+   694→   694→                      <span className="flex items-center gap-2">
+   695→   695→                        <Upload className="h-4 w-4 animate-bounce" />
+   696→   696→                        Uploading photos...
+   697→   697→                      </span>
+   698→   698→                    ) : (
+   699→   699→                      `Save Photos (${profileImages.length + galleryFiles.length}/6)`
+   700→   700→                    )}
+   701→   701→                  </Button>
+   702→   702→                )}
+   703→   703→              </div>
+   704→   704→            )}
+   705→   705→          </CardContent>
+   706→   706→        </Card>
+   707→   707→      </div>
+   708→   708→    </div>
+   709→   709→  )
+   710→   710→}
+   711→   711→

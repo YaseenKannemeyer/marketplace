@@ -290,11 +290,11 @@ export default function ProfilePage() {
   } satisfies DropzoneOptions
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="min-h-screen bg-gradient-to-b from-gray-50 to-emerald-50/30">
       {/* Top Bar */}
-      <div className="sticky top-0 z-50 bg-white border-b border-gray-200 shadow-sm">
-        <div className="max-w-4xl mx-auto px-4 py-3 flex items-center gap-3">
-          <button onClick={() => router.push('/')} className="flex items-center gap-2 text-gray-600 hover:text-gray-900">
+      <div className="sticky top-0 z-50 glass border-b border-white/20 shadow-sm">
+        <div className="max-w-4xl mx-auto px-4 py-3.5 flex items-center gap-3">
+          <button onClick={() => router.push('/')} className="flex items-center gap-2 text-gray-600 hover:text-emerald-600 transition-colors">
             <ArrowLeft className="h-5 w-5" />
             <span className="text-sm font-medium">Back</span>
           </button>
@@ -304,21 +304,24 @@ export default function ProfilePage() {
 
       <div className="max-w-4xl mx-auto px-4 py-6">
         {/* Profile Header Card */}
-        <Card className="overflow-hidden border-0 shadow-lg">
+        <Card className="overflow-hidden border-0 shadow-xl shadow-gray-200/40">
           {/* Cover */}
-          <div className="h-32 bg-gradient-to-r from-emerald-600 via-emerald-500 to-teal-500 relative">
-            <div className="absolute inset-0 bg-black/10" />
+          <div className="h-36 bg-gradient-to-br from-emerald-500 via-emerald-600 to-teal-600 relative overflow-hidden">
+            <div className="absolute inset-0">
+              <div className="absolute top-0 right-0 w-64 h-64 bg-white/10 rounded-full -translate-y-1/2 translate-x-1/4 blur-3xl" />
+              <div className="absolute bottom-0 left-0 w-48 h-48 bg-teal-400/20 rounded-full translate-y-1/3 -translate-x-1/4 blur-2xl" />
+            </div>
           </div>
           {/* Avatar + Info */}
-          <div className="px-6 pb-6 -mt-12">
+          <div className="px-6 pb-6 -mt-14 relative z-10">
             <div className="flex flex-col sm:flex-row items-start sm:items-end gap-4">
               <div className="relative">
-                <Avatar className="h-24 w-24 border-4 border-white shadow-lg">
+                <Avatar className="h-28 w-28 border-4 border-white shadow-xl shadow-gray-200/50">
                   <AvatarImage src={avatarUrl} />
-                  <AvatarFallback className="text-2xl bg-emerald-100 text-emerald-700">{name.charAt(0)}</AvatarFallback>
+                  <AvatarFallback className="text-2xl bg-gradient-to-br from-emerald-100 to-teal-100 text-emerald-700">{name.charAt(0)}</AvatarFallback>
                 </Avatar>
                 {currentUser.verified && (
-                  <div className="absolute -bottom-1 -right-1 w-7 h-7 bg-blue-500 rounded-full flex items-center justify-center border-2 border-white">
+                  <div className="absolute -bottom-1 -right-1 w-8 h-8 bg-gradient-to-br from-blue-500 to-blue-600 rounded-full flex items-center justify-center border-3 border-white shadow-lg">
                     <CheckCircle2 className="h-4 w-4 text-white" />
                   </div>
                 )}
@@ -327,20 +330,20 @@ export default function ProfilePage() {
                 <div className="flex items-center gap-2">
                   <h2 className="text-xl font-bold text-gray-900">{name}</h2>
                   {currentUser.verified && (
-                    <Badge className="bg-emerald-100 text-emerald-700 border-emerald-200 gap-1 text-xs">
+                    <Badge className="bg-emerald-50 text-emerald-700 border-emerald-200/60 gap-1 text-xs shadow-sm">
                       <Shield className="h-3 w-3" /> Verified Student
                     </Badge>
                   )}
                 </div>
                 <p className="text-sm text-gray-500 mt-0.5">{currentUser.email}</p>
-                <div className="flex flex-wrap gap-3 mt-2 text-xs text-gray-500">
+                <div className="flex flex-wrap gap-3 mt-2 text-xs">
                   {university && (
-                    <span className="flex items-center gap-1 bg-emerald-50 text-emerald-700 px-2 py-0.5 rounded-full">
+                    <span className="flex items-center gap-1 bg-emerald-50 text-emerald-700 px-2.5 py-1 rounded-lg font-medium">
                       <GraduationCap className="h-3 w-3" /> {university}
                     </span>
                   )}
                   {campus && (
-                    <span className="flex items-center gap-1 bg-gray-100 text-gray-600 px-2 py-0.5 rounded-full">
+                    <span className="flex items-center gap-1 bg-gray-100 text-gray-600 px-2.5 py-1 rounded-lg font-medium">
                       <MapPin className="h-3 w-3" /> {campus}
                     </span>
                   )}
@@ -349,7 +352,7 @@ export default function ProfilePage() {
               <Button
                 variant="outline"
                 onClick={() => { logout(); toast.success('Logged out'); router.push('/auth') }}
-                className="text-red-600 border-red-200 hover:bg-red-50 hover:text-red-700 rounded-xl text-sm"
+                className="text-red-600 border-red-200/60 hover:bg-red-50 hover:text-red-700 rounded-xl text-sm shadow-sm"
               >
                 Sign Out
               </Button>
@@ -359,18 +362,18 @@ export default function ProfilePage() {
 
         {/* Stats */}
         {profileStats && (
-          <div className="grid grid-cols-4 gap-3 mt-4">
+          <div className="grid grid-cols-4 gap-3 mt-5">
             {[
               { icon: <ShoppingBag className="h-4 w-4 text-emerald-600" />, label: 'Listings', value: profileStats.listings },
               { icon: <MessageSquare className="h-4 w-4 text-blue-600" />, label: 'Chats', value: profileStats.conversations },
               { icon: <BookOpen className="h-4 w-4 text-purple-600" />, label: 'Messages', value: profileStats.sentMessages + profileStats.receivedMessages },
               { icon: <Shield className="h-4 w-4 text-amber-600" />, label: 'Joined', value: new Date(profileStats.createdAt).toLocaleDateString('en-ZA', { month: 'short', year: 'numeric' }) },
             ].map(stat => (
-              <Card key={stat.label} className="border-0 shadow-sm">
-                <CardContent className="p-3 text-center">
-                  <div className="flex justify-center mb-1">{stat.icon}</div>
+              <Card key={stat.label} className="border border-gray-100 shadow-sm hover:shadow-md transition-shadow">
+                <CardContent className="p-3.5 text-center">
+                  <div className="flex justify-center mb-1.5 opacity-80">{stat.icon}</div>
                   <p className="text-lg font-bold text-gray-900">{stat.value}</p>
-                  <p className="text-[10px] text-gray-500 uppercase tracking-wide">{stat.label}</p>
+                  <p className="text-[10px] text-gray-400 uppercase tracking-wider font-semibold">{stat.label}</p>
                 </CardContent>
               </Card>
             ))}
@@ -378,7 +381,7 @@ export default function ProfilePage() {
         )}
 
         {/* Tabs */}
-        <div className="flex gap-1 mt-6 bg-gray-100 p-1 rounded-xl">
+        <div className="flex gap-1.5 mt-7 bg-white rounded-2xl p-1.5 shadow-sm border border-gray-100">
           {[
             { id: 'profile' as const, label: 'Edit Profile', icon: <Edit3 className="h-4 w-4" /> },
             { id: 'password' as const, label: 'Password', icon: <Lock className="h-4 w-4" /> },
@@ -387,8 +390,8 @@ export default function ProfilePage() {
             <button
               key={tab.id}
               onClick={() => setActiveTab(tab.id)}
-              className={`flex-1 flex items-center justify-center gap-2 py-2.5 rounded-lg text-sm font-medium transition-all ${
-                activeTab === tab.id ? 'bg-white text-gray-900 shadow-sm' : 'text-gray-500 hover:text-gray-700'
+              className={`flex-1 flex items-center justify-center gap-2 py-2.5 rounded-xl text-sm font-medium transition-all duration-200 ${
+                activeTab === tab.id ? 'bg-gradient-to-r from-emerald-600 to-teal-600 text-white shadow-lg shadow-emerald-200/40' : 'text-gray-500 hover:text-gray-700 hover:bg-gray-50'
               }`}
             >
               {tab.icon}
@@ -398,14 +401,14 @@ export default function ProfilePage() {
         </div>
 
         {/* Tab Content */}
-        <Card className="mt-4 border-0 shadow-sm">
+        <Card className="mt-5 border border-gray-100 shadow-lg shadow-gray-100/40">
           <CardContent className="p-6">
             {activeTab === 'profile' && (
               <div className="space-y-5">
                 <div className="flex items-center justify-between">
-                  <h3 className="text-lg font-semibold text-gray-900">Personal Information</h3>
+                  <h3 className="text-lg font-bold text-gray-900">Personal Information</h3>
                   {!isEditing ? (
-                    <Button variant="outline" onClick={() => setIsEditing(true)} className="gap-2 rounded-xl text-sm">
+                    <Button variant="outline" onClick={() => setIsEditing(true)} className="gap-2 rounded-xl text-sm border-gray-200 shadow-sm hover:shadow-md transition-all">
                       <Edit3 className="h-4 w-4" /> Edit
                     </Button>
                   ) : (
@@ -416,7 +419,7 @@ export default function ProfilePage() {
                         setBio(currentUser.bio || '')
                         setPhone(currentUser.phone || '')
                       }} className="rounded-xl text-sm">Cancel</Button>
-                      <Button onClick={handleSaveProfile} disabled={isSaving} className="bg-emerald-600 hover:bg-emerald-700 gap-2 rounded-xl text-sm">
+                      <Button onClick={handleSaveProfile} disabled={isSaving} className="bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-700 hover:to-teal-700 gap-2 rounded-xl text-sm shadow-lg shadow-emerald-200/40">
                         <Save className="h-4 w-4" /> {isSaving ? 'Saving...' : 'Save'}
                       </Button>
                     </div>
@@ -610,7 +613,7 @@ export default function ProfilePage() {
                   )}
                 </div>
 
-                <Button type="submit" disabled={isSavingPassword} className="w-full bg-emerald-600 hover:bg-emerald-700 rounded-xl h-11 font-medium">
+                <Button type="submit" disabled={isSavingPassword} className="w-full bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-700 hover:to-teal-700 rounded-xl h-11 font-semibold shadow-lg shadow-emerald-200/40">
                   {isSavingPassword ? 'Updating...' : 'Update Password'}
                 </Button>
               </form>
@@ -688,7 +691,7 @@ export default function ProfilePage() {
                   <Button
                     onClick={saveProfileImages}
                     disabled={isUploadingGallery}
-                    className="w-full bg-emerald-600 hover:bg-emerald-700 rounded-xl h-11 font-medium"
+                    className="w-full bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-700 hover:to-teal-700 rounded-xl h-11 font-semibold shadow-lg shadow-emerald-200/40"
                   >
                     {isUploadingGallery ? (
                       <span className="flex items-center gap-2">

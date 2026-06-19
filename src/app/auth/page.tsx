@@ -118,13 +118,13 @@ export default function AuthPage() {
       {/* Top bar */}
       <div className="bg-white border-b border-gray-200">
         <div className="max-w-7xl mx-auto px-4 py-3 flex items-center gap-3">
-          <div className="flex items-center gap-2">
-            <div className="w-9 h-9 bg-emerald-600 rounded-lg flex items-center justify-center">
+          <div className="flex items-center gap-2.5">
+            <div className="w-9 h-9 bg-gradient-to-br from-emerald-500 to-teal-600 rounded-xl flex items-center justify-center shadow-lg shadow-emerald-200/50">
               <Tag className="h-5 w-5 text-white" />
             </div>
             <div>
               <h1 className="text-lg font-bold text-gray-900 leading-tight">StudentMarket</h1>
-              <p className="text-[10px] text-emerald-600 font-medium leading-tight">South Africa</p>
+              <p className="text-[10px] text-emerald-600 font-semibold leading-tight tracking-wide uppercase">South Africa</p>
             </div>
           </div>
         </div>
@@ -250,7 +250,7 @@ export default function AuthPage() {
                   </div>
                 </div>
 
-                <Button type="submit" disabled={isLoggingIn} className="w-full bg-emerald-600 hover:bg-emerald-700 h-12 rounded-xl font-semibold text-sm">
+                <Button type="submit" disabled={isLoggingIn} className="w-full bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-700 hover:to-teal-700 h-12 rounded-xl font-semibold text-sm shadow-lg shadow-emerald-200/40">
                   {isLoggingIn ? (
                     <span className="flex items-center gap-2">Signing in...</span>
                   ) : (
@@ -363,7 +363,7 @@ export default function AuthPage() {
                   )}
                 </div>
 
-                <Button type="submit" disabled={isSigningUp} className="w-full bg-emerald-600 hover:bg-emerald-700 h-12 rounded-xl font-semibold text-sm">
+                <Button type="submit" disabled={isSigningUp} className="w-full bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-700 hover:to-teal-700 h-12 rounded-xl font-semibold text-sm shadow-lg shadow-emerald-200/40">
                   {isSigningUp ? (
                     <span className="flex items-center gap-2">Creating Account...</span>
                   ) : (
