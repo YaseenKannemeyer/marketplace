@@ -1,0 +1,83 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id             String    @id @default(cuid())
+  name           String
+  email          String    @unique
+  phone          String?
+  avatar         String?
+  university     String?
+  campus         String?
+  bio            String?
+  createdAt      DateTime  @default(now())
+  updatedAt      DateTime  @updatedAt
+
+  listings       Listing[]
+  sentMessages   Message[] @relation("SentMessages")
+  receivedMessages Message[] @relation("ReceivedMessages")
+}
+
+model Listing {
+  id             String    @id @default(cuid())
+  title          String
+  description    String
+  price          Float
+  negotiable     Boolean   @default(true)
+  condition      String    @default("Used")
+  categoryId     String
+  universityId   String?
+  campus         String?
+  location       String
+  images         String    @default("[]")
+  status         String    @default("active")
+  views          Int       @default(0)
+  createdAt      DateTime  @default(now())
+  updatedAt      DateTime  @updatedAt
+
+  seller         User      @relation(fields: [sellerId], references: [id])
+  sellerId       String
+  category       Category  @relation(fields: [categoryId], references: [id])
+  university     University? @relation(fields: [universityId], references: [id])
+  messages       Message[]
+}
+
+model Category {
+  id             String    @id @default(cuid())
+  name           String    @unique
+  icon           String
+  color          String    @default("#6366f1")
+  order          Int       @default(0)
+
+  listings       Listing[]
+}
+
+model University {
+  id             String    @id @default(cuid())
+  name           String    @unique
+  shortName      String
+  province       String
+  campuses       String    @default("[]")
+
+  listings       Listing[]
+}
+
+model Message {
+  id             String    @id @default(cuid())
+  content        String
+  listingId      String
+  senderId       String
+  receiverId     String
+  read           Boolean   @default(false)
+  createdAt      DateTime  @default(now())
+
+  listing        Listing   @relation(fields: [listingId], references: [id])
+  sender         User      @relation("SentMessages", fields: [senderId], references: [id])
+  receiver       User      @relation("ReceivedMessages", fields: [receiverId], references: [id])
+}
