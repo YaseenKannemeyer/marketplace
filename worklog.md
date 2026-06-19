@@ -39,3 +39,23 @@ Stage Summary:
 - Users can click to browse or drag-and-drop images (JPG, PNG, GIF, WEBP up to 5MB each, max 4 photos)
 - Images are uploaded to /api/upload which saves to public/uploads/listings/ and returns URLs
 - File previews show image thumbnails with size labels and hover-to-remove buttons
+
+---
+Task ID: 3
+Agent: Main
+Task: Replace profile picture and gallery photo inputs with drag-and-drop file uploaders
+
+Work Log:
+- Updated /api/upload route: added folder parameter supporting 'listings', 'profiles', 'avatars'
+- Created public/uploads/profiles and public/uploads/avatars directories
+- Updated profile page: added FileUploader imports and DropzoneOptions for avatar (single file) and gallery (multi file)
+- Replaced avatar URL text input with drag-and-drop uploader that auto-uploads on file select
+- Replaced gallery photo URL paste input with drag-and-drop uploader for profile photos
+- Gallery shows saved photos in grid + pending uploads as thumbnails with size labels
+- Fixed passwordStrength type error (was missing score property)
+
+Stage Summary:
+- Profile picture now uses a drag-and-drop dropzone (single image, auto-saves on upload)
+- Gallery photos use the same FileUploader component (up to 6 photos, drag-and-drop)
+- All uploads go through /api/upload with folder-specific paths
+- Build passes with zero errors

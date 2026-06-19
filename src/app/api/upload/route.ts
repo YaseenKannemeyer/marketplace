@@ -6,10 +6,15 @@ export async function POST(request: NextRequest) {
   try {
     const formData = await request.formData();
     const files = formData.getAll('files') as File[];
+    const folder = (formData.get('folder') as string) || 'listings';
 
     if (!files || files.length === 0) {
       return NextResponse.json({ error: 'No files provided' }, { status: 400 });
     }
+
+    // Restrict folder to known values
+    const allowedFolders = ['listings', 'profiles', 'avatars'];
+    const safeFolder = allowedFolders.includes(folder) ? folder : 'listings';
 
     const uploadedUrls: string[] = [];
 
@@ -39,11 +44,11 @@ export async function POST(request: NextRequest) {
       const ext = file.name.split('.').pop() || 'jpg';
       const uniqueName = `${Date.now()}-${Math.random().toString(36).slice(2, 8)}.${ext}`;
 
-      const uploadDir = path.join(process.cwd(), 'public', 'uploads', 'listings');
+      const uploadDir = path.join(process.cwd(), 'public', 'uploads', safeFolder);
       const filePath = path.join(uploadDir, uniqueName);
 
       await writeFile(filePath, buffer);
-      uploadedUrls.push(`/uploads/listings/${uniqueName}`);
+      uploadedUrls.push(`/uploads/${safeFolder}/${uniqueName}`);
     }
 
     return NextResponse.json({ urls: uploadedUrls });

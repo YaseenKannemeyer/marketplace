@@ -17,8 +17,15 @@ import {
   ArrowLeft, User, Mail, Phone, GraduationCap, MapPin,
   Shield, Camera, Edit3, Save, Lock, Eye, EyeOff,
   ImagePlus, X, CheckCircle2, BookOpen, ShoppingBag,
-  MessageSquare, ChevronRight,
+  MessageSquare, ChevronRight, Upload,
 } from 'lucide-react'
+import {
+  FileUploader,
+  FileInput,
+  FileUploaderContent,
+  FileUploaderItem,
+} from '@/components/ui/file-upload'
+import type { DropzoneOptions } from 'react-dropzone'
 
 export default function ProfilePage() {
   const router = useRouter()
@@ -46,7 +53,14 @@ export default function ProfilePage() {
 
   // Profile images
   const [profileImages, setProfileImages] = useState<string[]>([])
-  const [newImageUrl, setNewImageUrl] = useState('')
+
+  // Avatar upload
+  const [avatarFile, setAvatarFile] = useState<File[]>([])
+  const [isUploadingAvatar, setIsUploadingAvatar] = useState(false)
+
+  // Gallery photo upload
+  const [galleryFiles, setGalleryFiles] = useState<File[]>([])
+  const [isUploadingGallery, setIsUploadingGallery] = useState(false)
 
   // Profile stats
   const [profileStats, setProfileStats] = useState<{
@@ -165,10 +179,7 @@ export default function ProfilePage() {
   }
 
   const addProfileImage = () => {
-    if (!newImageUrl.trim()) return
     if (profileImages.length >= 6) { toast.error('Maximum 6 photos allowed'); return }
-    setProfileImages(prev => [...prev, newImageUrl.trim()])
-    setNewImageUrl('')
   }
 
   const removeProfileImage = (index: number) => {
@@ -176,19 +187,82 @@ export default function ProfilePage() {
   }
 
   const saveProfileImages = async () => {
+    let finalImages = [...profileImages]
+
+    // Upload new gallery files if any
+    if (galleryFiles.length > 0) {
+      setIsUploadingGallery(true)
+      try {
+        const formData = new FormData()
+        galleryFiles.forEach(f => formData.append('files', f))
+        formData.append('folder', 'profiles')
+        const uploadRes = await fetch('/api/upload', { method: 'POST', body: formData })
+        if (uploadRes.ok) {
+          const data = await uploadRes.json()
+          finalImages = [...finalImages, ...data.urls]
+        } else {
+          toast.error('Failed to upload photos')
+          setIsUploadingGallery(false)
+          return
+        }
+      } catch {
+        toast.error('Failed to upload photos')
+        setIsUploadingGallery(false)
+        return
+      }
+    }
+
     try {
       const res = await fetch('/api/profile', {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ userId: currentUser.id, profileImages }),
+        body: JSON.stringify({ userId: currentUser.id, profileImages: finalImages }),
       })
       if (res.ok) {
         const updated = await res.json()
         setCurrentUser(updated)
+        setProfileImages(finalImages)
+        setGalleryFiles([])
         toast.success('Photos updated!')
       }
     } catch {
       toast.error('Failed to update photos')
+    } finally {
+      setIsUploadingGallery(false)
+    }
+  }
+
+  const uploadAvatar = async () => {
+    if (avatarFile.length === 0) return
+    setIsUploadingAvatar(true)
+    try {
+      const formData = new FormData()
+      formData.append('files', avatarFile[0])
+      formData.append('folder', 'avatars')
+      const uploadRes = await fetch('/api/upload', { method: 'POST', body: formData })
+      if (uploadRes.ok) {
+        const data = await uploadRes.json()
+        const newUrl = data.urls[0]
+        setAvatarUrl(newUrl)
+        // Auto-save avatar
+        const res = await fetch('/api/profile', {
+          method: 'PUT',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ userId: currentUser.id, avatar: newUrl }),
+        })
+        if (res.ok) {
+          const updated = await res.json()
+          setCurrentUser(updated)
+          toast.success('Profile picture updated!')
+        }
+      } else {
+        toast.error('Failed to upload profile picture')
+      }
+    } catch {
+      toast.error('Failed to upload profile picture')
+    } finally {
+      setAvatarFile([])
+      setIsUploadingAvatar(false)
     }
   }
 
@@ -200,11 +274,22 @@ export default function ProfilePage() {
     if (/[A-Z]/.test(pw)) score++
     if (/[0-9]/.test(pw)) score++
     if (/[^A-Za-z0-9]/.test(pw)) score++
-    if (score <= 1) return { label: 'Weak', color: 'bg-red-500' }
-    if (score <= 2) return { label: 'Fair', color: 'bg-yellow-500' }
-    if (score <= 3) return { label: 'Good', color: 'bg-emerald-500' }
-    return { label: 'Strong', color: 'bg-emerald-700' }
+    return { score, label: score <= 1 ? 'Weak' : score <= 2 ? 'Fair' : score <= 3 ? 'Good' : 'Strong', color: score <= 1 ? 'bg-red-500' : score <= 2 ? 'bg-yellow-500' : score <= 3 ? 'bg-emerald-500' : 'bg-emerald-700' }
   }
+
+  const avatarDropzone = {
+    accept: { 'image/*': ['.jpg', '.jpeg', '.png', '.gif', '.webp'] },
+    multiple: false,
+    maxFiles: 1,
+    maxSize: 5 * 1024 * 1024,
+  } satisfies DropzoneOptions
+
+  const galleryDropzone = {
+    accept: { 'image/*': ['.jpg', '.jpeg', '.png', '.gif', '.webp'] },
+    multiple: true,
+    maxFiles: 6,
+    maxSize: 5 * 1024 * 1024,
+  } satisfies DropzoneOptions
 
   return (
     <div className="min-h-screen bg-gray-50">
@@ -340,23 +425,69 @@ export default function ProfilePage() {
                   )}
                 </div>
 
-                {/* Avatar URL */}
+                {/* Avatar Upload */}
                 <div>
-                  <Label className="text-sm font-medium text-gray-700">Profile Picture URL</Label>
-                  <div className="flex gap-2 mt-1.5">
-                    <Input
-                      value={avatarUrl}
-                      onChange={e => setAvatarUrl(e.target.value)}
-                      placeholder="https://api.dicebear.com/..."
-                      disabled={!isEditing}
-                      className="flex-1"
-                    />
-                    <Avatar className="h-10 w-10 shrink-0">
-                      <AvatarImage src={avatarUrl} />
-                      <AvatarFallback>{name.charAt(0)}</AvatarFallback>
-                    </Avatar>
+                  <Label className="text-sm font-medium text-gray-700">Profile Picture</Label>
+                  <div className="mt-3 flex items-center gap-5">
+                    <div className="relative">
+                      <Avatar className="h-20 w-20 border-4 border-gray-100">
+                        <AvatarImage src={avatarUrl} />
+                        <AvatarFallback className="text-2xl bg-emerald-100 text-emerald-700">{name.charAt(0)}</AvatarFallback>
+                      </Avatar>
+                      {isEditing && (
+                        <div className="absolute -bottom-1 -right-1 w-7 h-7 bg-emerald-600 rounded-full flex items-center justify-center border-2 border-white shadow-sm">
+                          <Camera className="h-3.5 w-3.5 text-white" />
+                        </div>
+                      )}
+                    </div>
+                    {isEditing && (
+                      <div className="flex-1">
+                        <FileUploader
+                          value={avatarFile}
+                          orientation="vertical"
+                          onValueChange={(files) => {
+                            setAvatarFile(files)
+                            if (files.length > 0) uploadAvatar()
+                          }}
+                          dropzoneOptions={avatarDropzone}
+                          className="relative"
+                        >
+                          <FileInput className="outline-dashed outline-2 outline-emerald-300/50 bg-emerald-50/50 hover:bg-emerald-50 transition-colors rounded-xl">
+                            <div className="flex items-center gap-3 py-4 px-4 w-full">
+                              <div className="w-10 h-10 rounded-full bg-emerald-100 flex items-center justify-center shrink-0">
+                                {isUploadingAvatar ? (
+                                  <Upload className="h-5 w-5 text-emerald-600 animate-bounce" />
+                                ) : (
+                                  <Upload className="h-5 w-5 text-emerald-600" />
+                                )}
+                              </div>
+                              <div>
+                                <p className="text-sm font-medium text-gray-700">
+                                  <span className="text-emerald-600">{isUploadingAvatar ? 'Uploading...' : 'Click to upload'}</span> or drag and drop
+                                </p>
+                                <p className="text-xs text-gray-400 mt-0.5">JPG, PNG, GIF or WEBP (max 5MB)</p>
+                              </div>
+                            </div>
+                          </FileInput>
+                          <FileUploaderContent>
+                            {avatarFile.map((file, i) => (
+                              <FileUploaderItem
+                                key={`avatar-${file.name}-${file.lastModified}`}
+                                index={i}
+                                className="size-16 p-0 rounded-lg overflow-hidden border"
+                              >
+                                <img
+                                  src={URL.createObjectURL(file)}
+                                  alt={file.name}
+                                  className="w-full h-full object-cover rounded-lg"
+                                />
+                              </FileUploaderItem>
+                            ))}
+                          </FileUploaderContent>
+                        </FileUploader>
+                      </div>
+                    )}
                   </div>
-                  <p className="text-xs text-gray-400 mt-1">DiceBear avatar URLs work great</p>
                 </div>
 
                 {/* Name */}
@@ -491,13 +622,59 @@ export default function ProfilePage() {
               <div className="space-y-5">
                 <div>
                   <h3 className="text-lg font-semibold text-gray-900 mb-1">Profile Photos</h3>
-                  <p className="text-sm text-gray-500">Add up to 6 photos to your profile (max 6)</p>
+                  <p className="text-sm text-gray-500">Add up to 6 photos to your profile gallery</p>
                 </div>
 
-                {/* Photo grid */}
+                {/* Upload dropzone */}
+                {profileImages.length + galleryFiles.length < 6 && (
+                  <FileUploader
+                    value={galleryFiles}
+                    orientation="vertical"
+                    onValueChange={setGalleryFiles}
+                    dropzoneOptions={galleryDropzone}
+                    className="relative rounded-lg"
+                  >
+                    <FileInput className="outline-dashed outline-2 outline-emerald-300/50 bg-emerald-50/50 hover:bg-emerald-50 transition-colors rounded-xl">
+                      <div className="flex flex-col items-center justify-center py-6 w-full">
+                        <div className="w-12 h-12 rounded-full bg-emerald-100 flex items-center justify-center mb-3">
+                          <Upload className="h-6 w-6 text-emerald-600" />
+                        </div>
+                        <p className="text-sm font-medium text-gray-700">
+                          <span className="text-emerald-600">Click to upload</span> or drag and drop
+                        </p>
+                        <p className="text-xs text-gray-400 mt-1">JPG, PNG, GIF or WEBP (max 5MB each)</p>
+                      </div>
+                    </FileInput>
+                    <FileUploaderContent className="flex flex-wrap gap-3 mt-3">
+                      {galleryFiles.map((file, i) => (
+                        <FileUploaderItem
+                          key={`gallery-${file.name}-${file.lastModified}`}
+                          index={i}
+                          className="size-24 p-0 rounded-lg overflow-hidden border border-gray-200 shadow-sm"
+                        >
+                          <div className="relative w-full h-full group/img">
+                            <img
+                              src={URL.createObjectURL(file)}
+                              alt={file.name}
+                              className="w-full h-full object-cover rounded-lg"
+                            />
+                            <div className="absolute inset-0 bg-black/0 group-hover/img:bg-black/30 transition-colors rounded-lg" />
+                            <div className="absolute bottom-1 left-1 right-1">
+                              <span className="text-[10px] text-white bg-black/50 rounded px-1 truncate block">
+                                {(file.size / 1024).toFixed(0)} KB
+                              </span>
+                            </div>
+                          </div>
+                        </FileUploaderItem>
+                      ))}
+                    </FileUploaderContent>
+                  </FileUploader>
+                )}
+
+                {/* Photo grid - saved + pending */}
                 <div className="grid grid-cols-3 gap-3">
                   {profileImages.map((img, i) => (
-                    <div key={i} className="relative aspect-square rounded-xl overflow-hidden group">
+                    <div key={`saved-${i}`} className="relative aspect-square rounded-xl overflow-hidden group">
                       <img src={img} alt="" className="w-full h-full object-cover" />
                       <button
                         onClick={() => removeProfileImage(i)}
@@ -507,30 +684,24 @@ export default function ProfilePage() {
                       </button>
                     </div>
                   ))}
-                  {profileImages.length < 6 && (
-                    <div className="aspect-square rounded-xl border-2 border-dashed border-gray-200 flex items-center justify-center">
-                      <ImagePlus className="h-6 w-6 text-gray-300" />
-                    </div>
-                  )}
                 </div>
 
-                {/* Add photo URL */}
-                <div className="flex gap-2">
-                  <Input
-                    value={newImageUrl}
-                    onChange={e => setNewImageUrl(e.target.value)}
-                    placeholder="Paste image URL..."
-                    className="flex-1"
-                    onKeyDown={e => e.key === 'Enter' && addProfileImage()}
-                  />
-                  <Button onClick={addProfileImage} disabled={!newImageUrl.trim()} variant="outline" className="rounded-xl">
-                    <ImagePlus className="h-4 w-4" />
+                {(profileImages.length > 0 || galleryFiles.length > 0) && (
+                  <Button
+                    onClick={saveProfileImages}
+                    disabled={isUploadingGallery}
+                    className="w-full bg-emerald-600 hover:bg-emerald-700 rounded-xl h-11 font-medium"
+                  >
+                    {isUploadingGallery ? (
+                      <span className="flex items-center gap-2">
+                        <Upload className="h-4 w-4 animate-bounce" />
+                        Uploading photos...
+                      </span>
+                    ) : (
+                      `Save Photos (${profileImages.length + galleryFiles.length}/6)`
+                    )}
                   </Button>
-                </div>
-
-                <Button onClick={saveProfileImages} className="w-full bg-emerald-600 hover:bg-emerald-700 rounded-xl">
-                  Save Photos
-                </Button>
+                )}
               </div>
             )}
           </CardContent>
