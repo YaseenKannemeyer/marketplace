@@ -97,8 +97,10 @@ export default function ProfilePage() {
           }
         })
         .catch(() => {})
+    } else {
+      router.push('/auth')
     }
-  }, [currentUser])
+  }, [currentUser, router])
 
   if (!currentUser) {
     return (
@@ -106,10 +108,7 @@ export default function ProfilePage() {
         <div className="text-center">
           <User className="h-16 w-16 text-gray-300 mx-auto mb-4" />
           <h2 className="text-xl font-semibold text-gray-900 mb-2">Please Sign In</h2>
-          <p className="text-gray-500 mb-6">You need to be logged in to view your profile</p>
-          <Button onClick={() => router.push('/?view=login')} className="bg-emerald-600 hover:bg-emerald-700 rounded-xl">
-            Sign In
-          </Button>
+          <p className="text-gray-500 mb-6">Redirecting to login...</p>
         </div>
       </div>
     )
@@ -232,12 +231,11 @@ export default function ProfilePage() {
     }
   }
 
-  const uploadAvatar = async () => {
-    if (avatarFile.length === 0) return
+  const uploadAvatar = async (fileToUpload: File) => {
     setIsUploadingAvatar(true)
     try {
       const formData = new FormData()
-      formData.append('files', avatarFile[0])
+      formData.append('files', fileToUpload)
       formData.append('folder', 'avatars')
       const uploadRes = await fetch('/api/upload', { method: 'POST', body: formData })
       if (uploadRes.ok) {
@@ -350,7 +348,7 @@ export default function ProfilePage() {
               </div>
               <Button
                 variant="outline"
-                onClick={logout}
+                onClick={() => { logout(); toast.success('Logged out'); router.push('/auth') }}
                 className="text-red-600 border-red-200 hover:bg-red-50 hover:text-red-700 rounded-xl text-sm"
               >
                 Sign Out
@@ -447,7 +445,7 @@ export default function ProfilePage() {
                           orientation="vertical"
                           onValueChange={(files) => {
                             setAvatarFile(files)
-                            if (files.length > 0) uploadAvatar()
+                            if (files.length > 0) uploadAvatar(files[0])
                           }}
                           dropzoneOptions={avatarDropzone}
                           className="relative"

@@ -78,3 +78,21 @@ Stage Summary:
 - Stories support two modes: gradient backgrounds (existing) and photo upload (new, drag-and-drop)
 - Notification bell in header shows unread message count, dropdown with message previews, click to navigate to chat and auto-mark-read
 - Build passes with 22 routes, zero errors
+
+---
+Task ID: 5
+Agent: Main
+Task: Fix profile pic upload, create gated auth page
+
+Work Log:
+- FIXED: Profile picture upload bug — uploadAvatar() was reading stale avatarFile state (React batching). Changed to pass file directly as parameter.
+- Created /auth page: beautiful full-page login/signup with split layout (hero left, form right), SA university branding, institutional email validation, password strength meter
+- Created AuthGate component on main page: redirects to /auth when no currentUser in Zustand
+- All sign-out buttons redirect to /auth after logout
+- Profile page redirects to /auth via useEffect (not during render)
+
+Stage Summary:
+- Profile picture upload now works: file is passed directly to uploadAvatar(file) instead of reading from stale state
+- /auth is now the entry point — users must sign in or create account before seeing any listings
+- Beautiful auth page with hero panel (desktop), login/signup toggle, university selector, password strength
+- Build passes with 23 routes, zero errors

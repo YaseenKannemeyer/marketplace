@@ -727,7 +727,7 @@ function Header() {
                         <Plus className="h-4 w-4 text-gray-500" /> New Listing
                       </button>
                       <div className="border-t border-gray-100 mt-1 pt-1">
-                        <button onClick={() => { logout(); setShowUserMenu(false); toast.success('Logged out') }} className="w-full px-4 py-2.5 text-sm text-left hover:bg-red-50 text-red-600 flex items-center gap-2.5">
+                        <button onClick={() => { logout(); setShowUserMenu(false); toast.success('Logged out'); router.push('/auth') }} className="w-full px-4 py-2.5 text-sm text-left hover:bg-red-50 text-red-600 flex items-center gap-2.5">
                           <LogOut className="h-4 w-4" /> Sign Out
                         </button>
                       </div>
@@ -1069,9 +1069,35 @@ function Footer() {
 export default function MarketplacePageWrapper() {
   return (
     <Suspense fallback={<div className="min-h-screen bg-gray-50 flex items-center justify-center"><div className="text-emerald-600 font-semibold">Loading...</div></div>}>
-      <MarketplacePage />
+      <AuthGate />
     </Suspense>
   )
+}
+
+function AuthGate() {
+  const router = useRouter()
+  const { currentUser } = useMarketplaceStore()
+
+  useEffect(() => {
+    if (!currentUser) {
+      router.push('/auth')
+    }
+  }, [currentUser, router])
+
+  if (!currentUser) {
+    return (
+      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+        <div className="text-center">
+          <div className="w-12 h-12 bg-emerald-100 rounded-xl flex items-center justify-center mx-auto mb-4">
+            <Tag className="h-6 w-6 text-emerald-600" />
+          </div>
+          <p className="text-emerald-600 font-semibold">Redirecting to sign in...</p>
+        </div>
+      </div>
+    )
+  }
+
+  return <MarketplacePage />
 }
 
 function MarketplacePage() {
