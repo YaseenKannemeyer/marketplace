@@ -59,3 +59,22 @@ Stage Summary:
 - Gallery photos use the same FileUploader component (up to 6 photos, drag-and-drop)
 - All uploads go through /api/upload with folder-specific paths
 - Build passes with zero errors
+
+---
+Task ID: 4
+Agent: Main
+Task: Fix image uploads, add story photo upload, add notification system
+
+Work Log:
+- FIXED: Rewrote /api/upload to save files to project-root /uploads/ directory (not public/) with mkdir recursive safety
+- Created /api/files/[...path] route to serve uploaded images with MIME detection, caching, and directory traversal protection
+- Updated CreateStoryDialog: added Background/Photo toggle, full drag-and-drop image uploader for photo stories, preview with remove button
+- Updated Header: added Bell notification icon with pulsing red badge (unread count), dropdown showing latest unread messages with sender avatar, message preview, listing reference, and mark-as-read on click
+- Created /api/notifications route: GET returns unread count + latest 10 notifications, PUT marks messages as read
+- Notifications poll every 15 seconds for real-time updates
+
+Stage Summary:
+- Image uploads now write to project-root /uploads/ and served via /api/files/ — works reliably in dev and production
+- Stories support two modes: gradient backgrounds (existing) and photo upload (new, drag-and-drop)
+- Notification bell in header shows unread message count, dropdown with message previews, click to navigate to chat and auto-mark-read
+- Build passes with 22 routes, zero errors

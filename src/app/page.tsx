@@ -35,6 +35,7 @@ import {
   LayoutGrid, SlidersHorizontal, TrendingUp, CheckCircle2, Tag,
   Star, Shield, Mail, Lock, EyeOff, CirclePlus, Camera,
   BadgeCheck, LogOut, MessageSquare, Settings, ImagePlus, Upload, Trash2,
+  Bell,
 } from 'lucide-react'
 import {
   FileUploader,
@@ -250,39 +251,146 @@ function CreateStoryDialog({ onCreated }: { onCreated: () => void }) {
   const [caption, setCaption] = useState('')
   const [selectedGradient, setSelectedGradient] = useState(GRADIENT_PRESETS[0])
   const [isSubmitting, setIsSubmitting] = useState(false)
+  const [storyMode, setStoryMode] = useState<'gradient' | 'photo'>('gradient')
+  const [storyFile, setStoryFile] = useState<File[]>([])
+  const [uploadedPreview, setUploadedPreview] = useState<string | null>(null)
+
+  const storyDropzone = {
+    accept: { 'image/*': ['.jpg', '.jpeg', '.png', '.gif', '.webp'] },
+    multiple: false,
+    maxFiles: 1,
+    maxSize: 5 * 1024 * 1024,
+  } satisfies DropzoneOptions
 
   const handleCreate = async () => {
-    if (!caption.trim() || !currentUser) return
+    if (!currentUser) return
     setIsSubmitting(true)
     try {
+      let mediaUrl = ''
+      let type = 'gradient'
+      let backgroundColor = selectedGradient
+
+      // Upload image if in photo mode
+      if (storyMode === 'photo' && storyFile.length > 0) {
+        const formData = new FormData()
+        formData.append('files', storyFile[0])
+        formData.append('folder', 'stories')
+        const uploadRes = await fetch('/api/upload', { method: 'POST', body: formData })
+        if (uploadRes.ok) {
+          const data = await uploadRes.json()
+          mediaUrl = data.urls[0]
+          type = 'image'
+          backgroundColor = '#1a1a1a'
+        } else {
+          toast.error('Failed to upload image')
+          setIsSubmitting(false)
+          return
+        }
+      }
+
+      if (!caption.trim()) {
+        toast.error('Please add a caption')
+        setIsSubmitting(false)
+        return
+      }
+
       const res = await fetch('/api/stories', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ userId: currentUser.id, caption: caption.trim(), type: 'gradient', backgroundColor: selectedGradient }),
+        body: JSON.stringify({ userId: currentUser.id, caption: caption.trim(), type, mediaUrl, backgroundColor }),
       })
-      if (res.ok) { toast.success('Story posted!'); setCaption(''); setShowCreateStory(false); onCreated() }
+      if (res.ok) {
+        toast.success('Story posted!')
+        setCaption(''); setStoryFile([]); setUploadedPreview(null); setStoryMode('gradient')
+        setShowCreateStory(false); onCreated()
+      }
     } catch { toast.error('Failed to post story') } finally { setIsSubmitting(false) }
   }
 
   return (
-    <Dialog open={showCreateStory} onOpenChange={(open) => !open && setShowCreateStory(false)}>
+    <Dialog open={showCreateStory} onOpenChange={(open) => { if (!open) { setShowCreateStory(false); setStoryFile([]); setUploadedPreview(null); setStoryMode('gradient') } }}>
       <DialogContent className="max-w-md">
         <DialogHeader>
           <DialogTitle className="text-lg flex items-center gap-2"><Camera className="h-5 w-5 text-emerald-600" />Create Story</DialogTitle>
           <DialogDescription className="sr-only">Create a new story</DialogDescription>
         </DialogHeader>
         <div className="space-y-4 mt-2">
-          <div className="relative aspect-[9/16] max-h-80 rounded-2xl overflow-hidden">
-            <div className="w-full h-full flex items-end p-4" style={{ background: selectedGradient }}>
-              <div className="text-white">
-                <p className="text-xl font-bold drop-shadow-lg">{caption || 'Your story caption...'}</p>
-                <p className="text-white/70 text-sm mt-1 flex items-center gap-1"><GraduationCap className="h-3.5 w-3.5" />{currentUser?.university || 'StudentMarket'}</p>
-              </div>
-            </div>
+          {/* Mode Toggle */}
+          <div className="flex gap-1 bg-gray-100 p-1 rounded-lg">
+            <button onClick={() => setStoryMode('gradient')} className={`flex-1 py-2 rounded-md text-sm font-medium transition-all ${storyMode === 'gradient' ? 'bg-white text-gray-900 shadow-sm' : 'text-gray-500'}`}>
+              <span className="flex items-center justify-center gap-1.5"><Star className="h-3.5 w-3.5" /> Background</span>
+            </button>
+            <button onClick={() => setStoryMode('photo')} className={`flex-1 py-2 rounded-md text-sm font-medium transition-all ${storyMode === 'photo' ? 'bg-white text-gray-900 shadow-sm' : 'text-gray-500'}`}>
+              <span className="flex items-center justify-center gap-1.5"><ImagePlus className="h-3.5 w-3.5" /> Photo</span>
+            </button>
           </div>
+
+          {/* Preview */}
+          <div className="relative aspect-[9/16] max-h-80 rounded-2xl overflow-hidden">
+            {storyMode === 'photo' ? (
+              <>
+                {uploadedPreview ? (
+                  <>
+                    <img src={uploadedPreview} alt="" className="w-full h-full object-cover" />
+                    <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent" />
+                    <div className="absolute bottom-0 left-0 right-0 p-4">
+                      <div className="text-white">
+                        <p className="text-xl font-bold drop-shadow-lg">{caption || 'Your story caption...'}</p>
+                        <p className="text-white/70 text-sm mt-1 flex items-center gap-1"><GraduationCap className="h-3.5 w-3.5" />{currentUser?.university || 'StudentMarket'}</p>
+                      </div>
+                    </div>
+                  </>
+                ) : (
+                  <FileUploader
+                    value={storyFile}
+                    orientation="vertical"
+                    onValueChange={(files) => {
+                      setStoryFile(files)
+                      if (files.length > 0) setUploadedPreview(URL.createObjectURL(files[0]))
+                    }}
+                    dropzoneOptions={storyDropzone}
+                    className="relative h-full"
+                  >
+                    <FileInput className="h-full outline-dashed outline-2 outline-emerald-300/50 bg-gray-900 hover:bg-gray-800 transition-colors rounded-2xl">
+                      <div className="flex flex-col items-center justify-center h-full w-full gap-3">
+                        <div className="w-16 h-16 rounded-full bg-white/10 backdrop-blur flex items-center justify-center">
+                          <Upload className="h-8 w-8 text-white/70" />
+                        </div>
+                        <div className="text-center">
+                          <p className="text-sm font-medium text-white">
+                            <span className="text-emerald-400">Click to upload</span> or drag and drop
+                          </p>
+                          <p className="text-xs text-white/50 mt-1">JPG, PNG, GIF or WEBP (max 5MB)</p>
+                        </div>
+                      </div>
+                    </FileInput>
+                  </FileUploader>
+                )}
+                {uploadedPreview && (
+                  <button onClick={() => { setUploadedPreview(null); setStoryFile([]) }} className="absolute top-3 right-3 w-8 h-8 bg-black/50 rounded-full flex items-center justify-center text-white/80 hover:text-white hover:bg-black/70 transition-colors">
+                    <X className="h-4 w-4" />
+                  </button>
+                )}
+              </>
+            ) : (
+              <div className="w-full h-full flex items-end p-4" style={{ background: selectedGradient }}>
+                <div className="text-white">
+                  <p className="text-xl font-bold drop-shadow-lg">{caption || 'Your story caption...'}</p>
+                  <p className="text-white/70 text-sm mt-1 flex items-center gap-1"><GraduationCap className="h-3.5 w-3.5" />{currentUser?.university || 'StudentMarket'}</p>
+                </div>
+              </div>
+            )}
+          </div>
+
           <div><Label className="text-sm font-medium">Caption</Label><Input placeholder="What&apos;s happening?" value={caption} onChange={(e) => setCaption(e.target.value)} maxLength={200} className="mt-1" /></div>
-          <div><Label className="text-sm font-medium">Background</Label><div className="flex flex-wrap gap-2 mt-2">{GRADIENT_PRESETS.map((g, i) => (<button key={i} onClick={() => setSelectedGradient(g)} className={`w-10 h-10 rounded-full border-2 transition-all ${selectedGradient === g ? 'border-emerald-500 scale-110' : 'border-transparent'}`} style={{ background: g }} />))}</div></div>
-          <Button onClick={handleCreate} disabled={!caption.trim() || isSubmitting} className="w-full bg-emerald-600 hover:bg-emerald-700 rounded-xl">{isSubmitting ? 'Posting...' : 'Post Story'}</Button>
+
+          {storyMode === 'gradient' && (
+            <div><Label className="text-sm font-medium">Background</Label><div className="flex flex-wrap gap-2 mt-2">{GRADIENT_PRESETS.map((g, i) => (<button key={i} onClick={() => setSelectedGradient(g)} className={`w-10 h-10 rounded-full border-2 transition-all ${selectedGradient === g ? 'border-emerald-500 scale-110' : 'border-transparent'}`} style={{ background: g }} />))}</div></div>
+          )}
+
+          <Button onClick={handleCreate} disabled={isSubmitting || (storyMode === 'photo' && !storyFile.length && !caption.trim())} className="w-full bg-emerald-600 hover:bg-emerald-700 rounded-xl">
+            {isSubmitting ? <span className="flex items-center gap-2"><Upload className="h-4 w-4 animate-bounce" />Posting...</span> : 'Post Story'}
+          </Button>
         </div>
       </DialogContent>
     </Dialog>
@@ -442,6 +550,46 @@ function Header() {
   const router = useRouter()
   const { searchQuery, setSearchQuery, setViewMode, currentUser, logout, setShowCreateStory } = useMarketplaceStore()
   const [showUserMenu, setShowUserMenu] = useState(false)
+  const [unreadCount, setUnreadCount] = useState(0)
+  const [showNotifications, setShowNotifications] = useState(false)
+  const [notifications, setNotifications] = useState<Array<{
+    id: string; type: string; title: string; body: string;
+    sender: { id: string; name: string; avatar: string };
+    conversationId: string;
+    listing: { id: string; title: string; images: string } | null;
+    createdAt: string;
+  }>>([])
+
+  // Fetch notifications
+  const fetchNotifications = useCallback(async () => {
+    if (!currentUser) return
+    try {
+      const res = await fetch(`/api/notifications?userId=${currentUser.id}`)
+      if (res.ok) {
+        const data = await res.json()
+        setUnreadCount(data.unreadCount)
+        setNotifications(data.notifications)
+      }
+    } catch { /* ignore */ }
+  }, [currentUser])
+
+  useEffect(() => {
+    fetchNotifications()
+    const interval = setInterval(fetchNotifications, 15000) // poll every 15s
+    return () => clearInterval(interval)
+  }, [fetchNotifications])
+
+  const handleMarkRead = async (conversationId: string) => {
+    if (!currentUser) return
+    await fetch('/api/notifications', {
+      method: 'PUT',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ userId: currentUser.id, conversationId }),
+    })
+    fetchNotifications()
+    router.push(`/chat/${conversationId}`)
+    setShowNotifications(false)
+  }
 
   return (
     <header className="sticky top-0 z-50 bg-white border-b border-gray-200 shadow-sm">
@@ -464,7 +612,76 @@ function Header() {
           </div>
 
           <div className="flex items-center gap-2">
-            {/* Chat icon - always visible */}
+            {/* Notification Bell */}
+            {currentUser && (
+              <div className="relative">
+                <button
+                  onClick={() => setShowNotifications(!showNotifications)}
+                  className="relative p-2 rounded-full hover:bg-gray-50 transition-colors"
+                >
+                  <Bell className="h-5 w-5 text-gray-600" />
+                  {unreadCount > 0 && (
+                    <span className="absolute -top-0.5 -right-0.5 min-w-[18px] h-[18px] bg-red-500 text-white text-[10px] font-bold rounded-full flex items-center justify-center px-1 animate-pulse">
+                      {unreadCount > 9 ? '9+' : unreadCount}
+                    </span>
+                  )}
+                </button>
+
+                {/* Notifications Dropdown */}
+                {showNotifications && (
+                  <>
+                    <div className="fixed inset-0 z-40" onClick={() => setShowNotifications(false)} />
+                    <div className="absolute right-0 top-full mt-1 w-80 bg-white rounded-xl shadow-lg border border-gray-200 z-50 overflow-hidden">
+                      <div className="px-4 py-3 border-b border-gray-100 flex items-center justify-between">
+                        <h3 className="text-sm font-semibold text-gray-900">Notifications</h3>
+                        {unreadCount > 0 && (
+                          <span className="text-xs text-emerald-600 font-medium">{unreadCount} unread</span>
+                        )}
+                      </div>
+                      <div className="max-h-80 overflow-y-auto">
+                        {notifications.length === 0 ? (
+                          <div className="px-4 py-8 text-center">
+                            <Bell className="h-8 w-8 text-gray-300 mx-auto mb-2" />
+                            <p className="text-sm text-gray-500">No new notifications</p>
+                          </div>
+                        ) : (
+                          notifications.map((notif) => (
+                            <button
+                              key={notif.id}
+                              onClick={() => handleMarkRead(notif.conversationId)}
+                              className="w-full px-4 py-3 text-left hover:bg-gray-50 flex items-start gap-3 border-b border-gray-50 transition-colors"
+                            >
+                              <Avatar className="h-9 w-9 shrink-0">
+                                <AvatarImage src={notif.sender.avatar || ''} />
+                                <AvatarFallback className="text-xs">{notif.sender.name.charAt(0)}</AvatarFallback>
+                              </Avatar>
+                              <div className="flex-1 min-w-0">
+                                <p className="text-sm font-medium text-gray-900">{notif.title}</p>
+                                <p className="text-xs text-gray-500 truncate mt-0.5">{notif.body}</p>
+                                {notif.listing && (
+                                  <p className="text-[11px] text-emerald-600 mt-0.5 truncate">Re: {notif.listing.title}</p>
+                                )}
+                                <p className="text-[10px] text-gray-400 mt-1">{timeAgo(notif.createdAt)}</p>
+                              </div>
+                              <div className="w-2 h-2 bg-emerald-500 rounded-full shrink-0 mt-1.5" />
+                            </button>
+                          ))
+                        )}
+                      </div>
+                      {unreadCount > 0 && (
+                        <div className="px-4 py-2 border-t border-gray-100 bg-gray-50">
+                          <button onClick={() => { router.push('/chat'); setShowNotifications(false) }} className="w-full text-center text-xs font-medium text-emerald-600 hover:text-emerald-700">
+                            View all messages
+                          </button>
+                        </div>
+                      )}
+                    </div>
+                  </>
+                )}
+              </div>
+            )}
+
+            {/* Chat icon */}
             {currentUser && (
               <button
                 onClick={() => router.push('/chat')}
