@@ -24,6 +24,9 @@ const universities = [
   { name: 'North-West University', shortName: 'NWU', province: 'North West', campuses: '["Potchefstroom","Vaal Triangle","Mafikeng"]' },
   { name: 'University of the Free State', shortName: 'UFS', province: 'Free State', campuses: '["Bloemfontein","Qwaqwa","South Campus"]' },
   { name: 'University of Limpopo', shortName: 'UL', province: 'Limpopo', campuses: '["Turfloop","Medical Sciences"]' },
+  { name: 'Cape Peninsula University of Technology', shortName: 'CPUT', province: 'Western Cape', campuses: '["Cape Town","Bellville","Wellington","Mowbray"]' },
+  { name: 'Durban University of Technology', shortName: 'DUT', province: 'KwaZulu-Natal', campuses: '["Steve Biko","Ritson","ML Sultan"]' },
+  { name: 'Tshwane University of Technology', shortName: 'TUT', province: 'Gauteng', campuses: '["Pretoria","eMalahleni","Ga-Rankuwa","Soshanguve"]' },
 ]
 
 // Users with hashed passwords (password is 'password123' for all)
@@ -36,6 +39,8 @@ const users = [
   { id: 'user-6', name: 'Nomsa Zulu', email: 'nomsa@uj.ac.za', password: 'password123', phone: '+27 76 789 0123', university: 'University of Johannesburg', campus: 'Auckland Park', bio: 'Law student. Moving out, selling everything!', avatar: 'https://api.dicebear.com/9.x/avataaars/svg?seed=Nomsa', verified: false },
   { id: 'user-7', name: 'Andile Botha', email: 'andile@ru.ac.za', password: 'password123', phone: '+27 72 890 1234', university: 'Rhodes University', campus: 'Grahamstown Main', bio: 'Journalism & Media Studies. Got loads of textbooks to sell.', avatar: 'https://api.dicebear.com/9.x/avataaars/svg?seed=Andile', verified: true },
   { id: 'user-8', name: 'Zanele Nkosi', email: 'zanele@nwu.ac.za', password: 'password123', phone: '+27 68 901 2345', university: 'North-West University', campus: 'Potchefstroom', bio: 'Education student. Love finding good deals.', avatar: 'https://api.dicebear.com/9.x/avataaars/svg?seed=Zanele', verified: true },
+  { id: 'user-9', name: 'Ayanda Sithole', email: '219045678@mycput.ac.za', password: 'password123', phone: '+27 73 012 3456', university: 'Cape Peninsula University of Technology', campus: 'Cape Town', bio: 'IT student at CPUT. Looking for affordable textbooks.', avatar: 'https://api.dicebear.com/9.x/avataaars/svg?seed=Ayanda', verified: true },
+  { id: 'user-10', name: 'Palesa Mokoena', email: 'palesa@dut.ac.za', password: 'password123', phone: '+27 79 123 4567', university: 'Durban University of Technology', campus: 'Steve Biko', bio: 'Engineering student at DUT. Love buying second-hand electronics.', avatar: 'https://api.dicebear.com/9.x/avataaars/svg?seed=Palesa', verified: true },
 ]
 
 const placeholderImages = [
@@ -117,34 +122,74 @@ const messages = [
   { content: 'What condition is the bed in?', listingId: 'list-19', senderId: 'user-5', receiverId: 'user-6' },
 ]
 
-// Stories data - each story has a gradient background and caption
+// Conversations with messages
+const conversations = [
+  { buyerId: 'user-2', sellerId: 'user-1', listingId: 'list-1' },
+  { buyerId: 'user-9', sellerId: 'user-1', listingId: 'list-7' },
+  { buyerId: 'user-3', sellerId: 'user-8', listingId: 'list-12' },
+  { buyerId: 'user-5', sellerId: 'user-6', listingId: 'list-19' },
+  { buyerId: 'user-10', sellerId: 'user-4', listingId: 'list-15' },
+  { buyerId: 'user-9', sellerId: 'user-2', listingId: 'list-2' },
+]
+
+const conversationMessages = [
+  // Conversation 1: Sipho & Thandi about Calculus textbook
+  { conversationId: 'convo-1', senderId: 'user-2', content: 'Hey Sipho! Is the Calculus textbook still available?', createdAt: new Date(Date.now() - 3 * 60 * 60 * 1000) },
+  { conversationId: 'convo-1', senderId: 'user-1', content: 'Yes it is! Barely used, in excellent condition.', createdAt: new Date(Date.now() - 2.5 * 60 * 60 * 1000) },
+  { conversationId: 'convo-1', senderId: 'user-2', content: 'Great! Can you do R400 for it?', createdAt: new Date(Date.now() - 2 * 60 * 60 * 1000) },
+  { conversationId: 'convo-1', senderId: 'user-1', content: 'R420 is my lowest. It has minimal highlighting.', createdAt: new Date(Date.now() - 1.5 * 60 * 60 * 1000) },
+  { conversationId: 'convo-1', senderId: 'user-2', content: 'Deal! When can I collect? I am at Wits East Campus.', createdAt: new Date(Date.now() - 1 * 60 * 60 * 1000) },
+  { conversationId: 'convo-1', senderId: 'user-1', content: 'I can meet at the Jammie Shuttle stop in Rondebosch after 3pm tomorrow.', createdAt: new Date(Date.now() - 30 * 60 * 1000) },
+
+  // Conversation 2: Ayanda & Sipho about iPad
+  { conversationId: 'convo-2', senderId: 'user-9', content: 'Hi, is the iPad still available? I am at CPUT Cape Town campus.', createdAt: new Date(Date.now() - 5 * 60 * 60 * 1000) },
+  { conversationId: 'convo-2', senderId: 'user-1', content: 'Yes! Only used for 6 months. Comes with charger and box.', createdAt: new Date(Date.now() - 4.5 * 60 * 60 * 1000) },
+  { conversationId: 'convo-2', senderId: 'user-9', content: 'R6000? I can collect this weekend.', createdAt: new Date(Date.now() - 4 * 60 * 60 * 1000) },
+  { conversationId: 'convo-2', senderId: 'user-1', content: 'Let me think about it... R6200 and I throw in the screen protector.', createdAt: new Date(Date.now() - 3.5 * 60 * 60 * 1000) },
+
+  // Conversation 3: Kgosi & Zanele about Calculator
+  { conversationId: 'convo-3', senderId: 'user-3', content: 'Can you do R250 for the calculator?', createdAt: new Date(Date.now() - 2 * 60 * 60 * 1000) },
+  { conversationId: 'convo-3', senderId: 'user-8', content: 'R270 is the best I can do. It is basically brand new.', createdAt: new Date(Date.now() - 1.5 * 60 * 60 * 1000) },
+
+  // Conversation 4: Bongani & Nomsa about Bed
+  { conversationId: 'convo-4', senderId: 'user-5', content: 'What condition is the bed in?', createdAt: new Date(Date.now() - 10 * 60 * 60 * 1000) },
+  { conversationId: 'convo-4', senderId: 'user-6', content: 'Very good! The mattress was always in a waterproof cover. No stains.', createdAt: new Date(Date.now() - 9.5 * 60 * 60 * 1000) },
+  { conversationId: 'convo-4', senderId: 'user-5', content: 'How much for delivery to Westville?', createdAt: new Date(Date.now() - 9 * 60 * 60 * 1000) },
+
+  // Conversation 5: Palesa & Lerato about Nike AF1s
+  { conversationId: 'convo-5', senderId: 'user-10', content: 'Are the Nike AF1s still available? I am at DUT Steve Biko campus.', createdAt: new Date(Date.now() - 1 * 60 * 60 * 1000) },
+  { conversationId: 'convo-5', senderId: 'user-4', content: 'Yes! Size 9 UK. Only worn a few times.', createdAt: new Date(Date.now() - 45 * 60 * 1000) },
+
+  // Conversation 6: Ayanda & Thandi about Organic Chemistry
+  { conversationId: 'convo-6', senderId: 'user-9', content: 'Hi Thandi! Do you still have the Organic Chemistry textbook?', createdAt: new Date(Date.now() - 7 * 60 * 60 * 1000) },
+  { conversationId: 'convo-6', senderId: 'user-2', content: 'Yes I do! Comes with solution manual too.', createdAt: new Date(Date.now() - 6.5 * 60 * 60 * 1000) },
+  { conversationId: 'convo-6', senderId: 'user-9', content: 'Can you ship it to Cape Town? I will cover the courier cost.', createdAt: new Date(Date.now() - 6 * 60 * 60 * 1000) },
+]
+
+// Stories data
 const stories = [
-  // Sipho's stories
   { userId: 'user-1', type: 'gradient', mediaUrl: '', caption: 'Just listed my iPad! Check it out', backgroundColor: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)', linkUrl: '' },
   { userId: 'user-1', type: 'gradient', mediaUrl: '', caption: 'Free calculus notes available too', backgroundColor: 'linear-gradient(135deg, #f093fb 0%, #f5576c 100%)', linkUrl: '' },
-  // Thandi's stories
   { userId: 'user-2', type: 'image', mediaUrl: 'https://images.unsplash.com/photo-1580582932707-520aed937b7b?w=600&h=900&fit=crop', caption: 'Med textbooks going fast! DM me', backgroundColor: '#000000', linkUrl: '' },
   { userId: 'user-2', type: 'gradient', mediaUrl: '', caption: 'Wits students get 10% off', backgroundColor: 'linear-gradient(135deg, #4facfe 0%, #00f2fe 100%)', linkUrl: '' },
-  // Kgosi's stories
   { userId: 'user-3', type: 'gradient', mediaUrl: '', caption: 'New Samsung Buds2 Pro - barely used!', backgroundColor: 'linear-gradient(135deg, #43e97b 0%, #38f9d7 100%)', linkUrl: '' },
-  // Lerato's stories
   { userId: 'user-4', type: 'image', mediaUrl: 'https://images.unsplash.com/photo-1441986300917-64674bd600d8?w=600&h=900&fit=crop', caption: 'Spring wardrobe clearance! Everything must go', backgroundColor: '#000000', linkUrl: '' },
   { userId: 'user-4', type: 'gradient', mediaUrl: '', caption: 'Size 9 Nike AF1s still available', backgroundColor: 'linear-gradient(135deg, #fa709a 0%, #fee140 100%)', linkUrl: '' },
-  // Bongani's stories
   { userId: 'user-5', type: 'gradient', mediaUrl: '', caption: 'Accounting textbooks bundle - save R200', backgroundColor: 'linear-gradient(135deg, #a18cd1 0%, #fbc2eb 100%)', linkUrl: '' },
-  // Nomsa's stories
   { userId: 'user-6', type: 'gradient', mediaUrl: '', caption: 'MOVING SALE! Everything must go!', backgroundColor: 'linear-gradient(135deg, #ffecd2 0%, #fcb69f 100%)', linkUrl: '' },
   { userId: 'user-6', type: 'gradient', mediaUrl: '', caption: 'Braamfontein apartment available July', backgroundColor: 'linear-gradient(135deg, #ff9a9e 0%, #fecfef 100%)', linkUrl: '' },
-  // Andile's stories
   { userId: 'user-7', type: 'gradient', mediaUrl: '', caption: 'Essay editing service - R50/1000 words', backgroundColor: 'linear-gradient(135deg, #c471f5 0%, #fa71cd 100%)', linkUrl: '' },
-  // Zanele's stories
   { userId: 'user-8', type: 'gradient', mediaUrl: '', caption: 'Free stuff Friday! Check my listings', backgroundColor: 'linear-gradient(135deg, #48c6ef 0%, #6f86d6 100%)', linkUrl: '' },
+  { userId: 'user-9', type: 'gradient', mediaUrl: '', caption: 'Looking for a good laptop deal! DM me', backgroundColor: 'linear-gradient(135deg, #89f7fe 0%, #66a6ff 100%)', linkUrl: '' },
+  { userId: 'user-10', type: 'gradient', mediaUrl: '', caption: 'Just joined StudentMarket!', backgroundColor: 'linear-gradient(135deg, #fddb92 0%, #d1fdff 100%)', linkUrl: '' },
 ]
 
 async function seed() {
   console.log('🌱 Seeding database...')
 
   // Clear existing data
+  await db.conversationMessage.deleteMany()
+  await db.conversation.deleteMany()
   await db.story.deleteMany()
   await db.message.deleteMany()
   await db.listing.deleteMany()
@@ -182,11 +227,43 @@ async function seed() {
   }
   console.log(`✅ Created ${listings.length} listings`)
 
-  // Create messages
+  // Create legacy messages
   for (const msg of messages) {
     await db.message.create({ data: msg as any })
   }
   console.log(`✅ Created ${messages.length} messages`)
+
+  // Create conversations
+  for (const convo of conversations) {
+    const idx = conversations.indexOf(convo) + 1
+    await db.conversation.create({
+      data: {
+        id: `convo-${idx}`,
+        ...convo,
+      },
+    })
+  }
+  console.log(`✅ Created ${conversations.length} conversations`)
+
+  // Create conversation messages
+  for (const msg of conversationMessages) {
+    await db.conversationMessage.create({ data: msg as any })
+  }
+  console.log(`✅ Created ${conversationMessages.length} conversation messages`)
+
+  // Update conversations with last message info
+  for (const convo of conversations) {
+    const idx = conversations.indexOf(convo) + 1
+    const lastMsg = conversationMessages
+      .filter(m => m.conversationId === `convo-${idx}`)
+      .sort((a, b) => b.createdAt.getTime() - a.createdAt.getTime())[0]
+    if (lastMsg) {
+      await db.conversation.update({
+        where: { id: `convo-${idx}` },
+        data: { lastMessage: lastMsg.content, lastMessageAt: lastMsg.createdAt },
+      })
+    }
+  }
 
   // Create stories (expire in 24 hours)
   const expiresAt = new Date(Date.now() + 24 * 60 * 60 * 1000)

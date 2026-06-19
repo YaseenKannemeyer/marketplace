@@ -17,14 +17,18 @@ model User {
   university     String?
   campus         String?
   bio            String?
+  profileImages  String    @default("[]")
   verified       Boolean   @default(false)
   createdAt      DateTime  @default(now())
   updatedAt      DateTime  @updatedAt
 
-  listings       Listing[]
-  sentMessages   Message[] @relation("SentMessages")
-  receivedMessages Message[] @relation("ReceivedMessages")
-  stories        Story[]
+  listings           Listing[]
+  sentMessages       Message[] @relation("SentMessages")
+  receivedMessages   Message[] @relation("ReceivedMessages")
+  stories            Story[]
+  buyerConversations Conversation[] @relation("BuyerConversations")
+  sellerConversations Conversation[] @relation("SellerConversations")
+  sentConvoMessages  ConversationMessage[] @relation("SentConvoMessages")
 }
 
 model Listing {
@@ -49,6 +53,7 @@ model Listing {
   category       Category  @relation(fields: [categoryId], references: [id])
   university     University? @relation(fields: [universityId], references: [id])
   messages       Message[]
+  conversations  Conversation[]
 }
 
 model Category {
@@ -97,4 +102,32 @@ model Story {
   expiresAt      DateTime
 
   user           User      @relation(fields: [userId], references: [id])
+}
+
+model Conversation {
+  id             String    @id @default(cuid())
+  buyerId        String
+  sellerId       String
+  listingId      String
+  lastMessage    String?
+  lastMessageAt  DateTime?
+  createdAt      DateTime  @default(now())
+  updatedAt      DateTime  @updatedAt
+
+  buyer          User      @relation("BuyerConversations", fields: [buyerId], references: [id])
+  seller         User      @relation("SellerConversations", fields: [sellerId], references: [id])
+  listing        Listing   @relation(fields: [listingId], references: [id])
+  messages       ConversationMessage[]
+}
+
+model ConversationMessage {
+  id             String    @id @default(cuid())
+  conversationId String
+  senderId       String
+  content        String
+  read           Boolean   @default(false)
+  createdAt      DateTime  @default(now())
+
+  conversation   Conversation @relation(fields: [conversationId], references: [id], onDelete: Cascade)
+  sender         User      @relation("SentConvoMessages", fields: [senderId], references: [id])
 }

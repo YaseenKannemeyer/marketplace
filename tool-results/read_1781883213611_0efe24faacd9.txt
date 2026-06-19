@@ -1,0 +1,412 @@
+   800→              </SelectTrigger>
+   801→              <SelectContent>
+   802→                <SelectItem value="newest">Newest first</SelectItem>
+   803→                <SelectItem value="price_low">Price: Low to High</SelectItem>
+   804→                <SelectItem value="price_high">Price: High to Low</SelectItem>
+   805→              </SelectContent>
+   806→            </Select>
+   807→          </div>
+   808→        </div>
+   809→      </div>
+   810→    </div>
+   811→  )
+   812→}
+   813→
+   814→// ─── Listing Card ───
+   815→function ListingCard({ listing, onClick }: { listing: ListingDetail; onClick: () => void }) {
+   816→  const images = JSON.parse(listing.images || '[]') as string[]
+   817→  return (
+   818→    <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} whileHover={{ y: -2 }} transition={{ duration: 0.2 }}>
+   819→      <Card className="overflow-hidden cursor-pointer group border-gray-200 hover:shadow-lg hover:border-emerald-200 transition-all duration-300" onClick={onClick}>
+   820→        <div className="relative aspect-square bg-gray-100 overflow-hidden">
+   821→          {images[0] ? (
+   822→            <img src={images[0]} alt={listing.title} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300" loading="lazy" />
+   823→          ) : (
+   824→            <div className="w-full h-full flex items-center justify-center bg-gradient-to-br from-gray-50 to-gray-100">
+   825→              <div className="text-center p-4">{ICON_MAP[listing.category.icon]}<p className="text-xs text-gray-400 mt-2">{listing.category.name}</p></div>
+   826→            </div>
+   827→          )}
+   828→          <Badge className="absolute top-2 left-2 text-[10px] font-medium" style={{ backgroundColor: listing.category.color + 'DD', color: 'white' }}>{listing.condition}</Badge>
+   829→          <div className="absolute bottom-2 left-2">
+   830→            <span className={`text-lg font-bold px-2.5 py-1 rounded-lg ${listing.price === 0 ? 'bg-green-500 text-white' : 'bg-white/95 text-gray-900 backdrop-blur-sm'}`}>{formatPrice(listing.price)}</span>
+   831→          </div>
+   832→          <button className="absolute top-2 right-2 w-8 h-8 bg-white/80 backdrop-blur-sm rounded-full flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity" onClick={(e) => e.stopPropagation()}>
+   833→            <Heart className="h-4 w-4 text-gray-500" />
+   834→          </button>
+   835→        </div>
+   836→        <CardContent className="p-3">
+   837→          <h3 className="font-semibold text-sm text-gray-900 line-clamp-2 leading-snug mb-1.5">{listing.title}</h3>
+   838→          <div className="flex items-center gap-1.5 text-xs text-gray-500 mb-2">
+   839→            <MapPin className="h-3 w-3 shrink-0" /><span className="truncate">{listing.location}</span>
+   840→          </div>
+   841→          <div className="flex items-center justify-between">
+   842→            <div className="flex items-center gap-1.5">
+   843→              <Avatar className="h-5 w-5"><AvatarImage src={listing.seller.avatar} /><AvatarFallback className="text-[8px]">{listing.seller.name.charAt(0)}</AvatarFallback></Avatar>
+   844→              <span className="text-xs text-gray-500 truncate max-w-[80px]">{listing.seller.name.split(' ')[0]}</span>
+   845→            </div>
+   846→            <div className="flex items-center gap-2 text-xs text-gray-400">
+   847→              <span className="flex items-center gap-0.5"><Eye className="h-3 w-3" />{listing.views}</span>
+   848→              <span>{timeAgo(listing.createdAt)}</span>
+   849→            </div>
+   850→          </div>
+   851→        </CardContent>
+   852→      </Card>
+   853→    </motion.div>
+   854→  )
+   855→}
+   856→
+   857→// ─── Listing Grid ───
+   858→function ListingGrid({ listings, onSelectListing }: { listings: ListingDetail[]; onSelectListing: (l: ListingDetail) => void }) {
+   859→  if (listings.length === 0) return (
+   860→    <div className="flex flex-col items-center justify-center py-20 px-4">
+   861→      <div className="w-20 h-20 bg-gray-100 rounded-full flex items-center justify-center mb-4"><Search className="h-8 w-8 text-gray-300" /></div>
+   862→      <h3 className="text-lg font-semibold text-gray-700 mb-1">No listings found</h3>
+   863→      <p className="text-sm text-gray-400 text-center max-w-sm">Try adjusting your filters or search terms.</p>
+   864→    </div>
+   865→  )
+   866→  return (
+   867→    <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-3 p-4">
+   868→      {listings.map((listing) => <ListingCard key={listing.id} listing={listing} onClick={() => onSelectListing(listing)} />)}
+   869→    </div>
+   870→  )
+   871→}
+   872→
+   873→// ─── Listing Detail Dialog ───
+   874→function ListingDetailDialog() {
+   875→  const { selectedListing, setSelectedListing, currentUserId, currentUser } = useMarketplaceStore()
+   876→  const [messages, setMessages] = useState<Message[]>([])
+   877→  const [newMessage, setNewMessage] = useState('')
+   878→  const [imageIndex, setImageIndex] = useState(0)
+   879→  const [liked, setLiked] = useState(false)
+   880→  const images = selectedListing ? JSON.parse(selectedListing.images || '[]') as string[] : []
+   881→  const isOpen = !!selectedListing
+   882→  const userId = currentUser?.id || currentUserId || 'user-1'
+   883→
+   884→  useEffect(() => {
+   885→    if (selectedListing) {
+   886→      fetch(`/api/listings/${selectedListing.id}/messages`).then((r) => r.json()).then(setMessages).catch(() => {})
+   887→      setImageIndex(0)
+   888→      setLiked(false)
+   889→    }
+   890→  }, [selectedListing])
+   891→
+   892→  const handleSendMessage = async () => {
+   893→    if (!selectedListing || !newMessage.trim()) return
+   894→    const msg = newMessage.trim()
+   895→    setNewMessage('')
+   896→    try {
+   897→      const res = await fetch(`/api/listings/${selectedListing.id}/messages`, {
+   898→        method: 'POST',
+   899→        headers: { 'Content-Type': 'application/json' },
+   900→        body: JSON.stringify({ content: msg, senderId: userId, receiverId: selectedListing.sellerId }),
+   901→      })
+   902→      if (res.ok) {
+   903→        const newMsg = await res.json()
+   904→        setMessages((prev) => [...prev, newMsg])
+   905→      }
+   906→    } catch { toast.error('Failed to send message') }
+   907→  }
+   908→
+   909→  const isOwner = userId === selectedListing?.sellerId
+   910→
+   911→  if (!selectedListing) return null
+   912→
+   913→  return (
+   914→    <Dialog open={isOpen} onOpenChange={(open) => !open && setSelectedListing(null)}>
+   915→      <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto p-0 gap-0">
+   916→        <div className="md:flex">
+   917→          <div className="md:w-1/2 bg-gray-100">
+   918→            <div className="relative aspect-square">
+   919→              {images[0] ? (
+   920→                <img src={images[imageIndex]} alt={selectedListing.title} className="w-full h-full object-cover" />
+   921→              ) : (
+   922→                <div className="w-full h-full flex items-center justify-center">
+   923→                  <div className="text-center">{ICON_MAP[selectedListing.category.icon] && <div className="text-6xl text-gray-300 mb-3">{ICON_MAP[selectedListing.category.icon]}</div>}<p className="text-sm text-gray-400">{selectedListing.category.name}</p></div>
+   924→                </div>
+   925→              )}
+   926→              {images.length > 1 && (<>
+   927→                <button onClick={() => setImageIndex((p) => (p - 1 + images.length) % images.length)} className="absolute left-2 top-1/2 -translate-y-1/2 w-8 h-8 bg-white/80 rounded-full flex items-center justify-center hover:bg-white"><ChevronLeft className="h-4 w-4" /></button>
+   928→                <button onClick={() => setImageIndex((p) => (p + 1) % images.length)} className="absolute right-2 top-1/2 -translate-y-1/2 w-8 h-8 bg-white/80 rounded-full flex items-center justify-center hover:bg-white"><ChevronRight className="h-4 w-4" /></button>
+   929→                <div className="absolute bottom-3 left-1/2 -translate-x-1/2 flex gap-1">{images.map((_, i) => <button key={i} onClick={() => setImageIndex(i)} className={`w-2 h-2 rounded-full transition-colors ${i === imageIndex ? 'bg-white' : 'bg-white/50'}`} />)}</div>
+   930→              </>)}
+   931→            </div>
+   932→          </div>
+   933→          <div className="md:w-1/2 p-5">
+   934→            <DialogHeader className="space-y-2 mb-4">
+   935→              <div className="flex items-start justify-between">
+   936→                <Badge style={{ backgroundColor: selectedListing.category.color, color: 'white' }} className="text-xs">{ICON_MAP_SM[selectedListing.category.icon]}<span className="ml-1">{selectedListing.category.name}</span></Badge>
+   937→                <div className="flex items-center gap-1">
+   938→                  <button onClick={() => setLiked(!liked)} className="p-2 rounded-full hover:bg-gray-100 transition-colors"><Heart className={`h-5 w-5 ${liked ? 'fill-red-500 text-red-500' : 'text-gray-400'}`} /></button>
+   939→                  <button className="p-2 rounded-full hover:bg-gray-100 transition-colors"><Share2 className="h-5 w-5 text-gray-400" /></button>
+   940→                </div>
+   941→              </div>
+   942→              <DialogTitle className="text-xl leading-tight">{selectedListing.title}</DialogTitle>
+   943→              <div className="flex items-baseline gap-2">
+   944→                <span className={`text-2xl font-bold ${selectedListing.price === 0 ? 'text-green-600' : 'text-gray-900'}`}>{formatPrice(selectedListing.price)}</span>
+   945→                {selectedListing.price > 0 && selectedListing.negotiable && <span className="text-sm text-emerald-600 font-medium">Negotiable</span>}
+   946→              </div>
+   947→              <DialogDescription className="sr-only">View listing details</DialogDescription>
+   948→            </DialogHeader>
+   949→            <div className="space-y-4 mb-5">
+   950→              <div className="grid grid-cols-2 gap-3">
+   951→                {[
+   952→                  { icon: <CheckCircle2 className="h-4 w-4 text-gray-400" />, label: 'Condition', value: selectedListing.condition },
+   953→                  { icon: <MapPin className="h-4 w-4 text-gray-400" />, label: 'Location', value: selectedListing.location },
+   954→                  { icon: <Clock className="h-4 w-4 text-gray-400" />, label: 'Posted', value: timeAgo(selectedListing.createdAt) },
+   955→                  { icon: <Eye className="h-4 w-4 text-gray-400" />, label: 'Views', value: `${selectedListing.views} views` },
+   956→                ].map((item) => (
+   957→                  <div key={item.label} className="flex items-center gap-2 text-sm">
+   958→                    {item.icon}<div><p className="text-gray-400 text-xs">{item.label}</p><p className="font-medium">{item.value}</p></div>
+   959→                  </div>
+   960→                ))}
+   961→              </div>
+   962→              {selectedListing.university && (
+   963→                <div className="flex items-center gap-2 text-sm bg-emerald-50 p-2.5 rounded-lg">
+   964→                  <GraduationCap className="h-4 w-4 text-emerald-600" /><span className="font-medium text-emerald-700">{selectedListing.university.name}</span>
+   965→                  {selectedListing.campus && <span className="text-emerald-500">• {selectedListing.campus}</span>}
+   966→                </div>
+   967→              )}
+   968→              <Separator />
+   969→              <div><h4 className="font-semibold text-sm mb-1.5">Description</h4><p className="text-sm text-gray-600 leading-relaxed whitespace-pre-wrap">{selectedListing.description}</p></div>
+   970→              <Separator />
+   971→              <div>
+   972→                <h4 className="font-semibold text-sm mb-2">Seller</h4>
+   973→                <div className="flex items-center gap-3 p-3 bg-gray-50 rounded-xl">
+   974→                  <Avatar className="h-12 w-12"><AvatarImage src={selectedListing.seller.avatar} /><AvatarFallback>{selectedListing.seller.name.charAt(0)}</AvatarFallback></Avatar>
+   975→                  <div className="flex-1 min-w-0">
+   976→                    <div className="flex items-center gap-1.5"><p className="font-semibold text-sm">{selectedListing.seller.name}</p><Shield className="h-3.5 w-3.5 text-emerald-500" /></div>
+   977→                    {selectedListing.seller.university && <p className="text-xs text-gray-500">{selectedListing.seller.university}</p>}
+   978→                    {selectedListing.seller.bio && <p className="text-xs text-gray-400 truncate mt-0.5">{selectedListing.seller.bio}</p>}
+   979→                  </div>
+   980→                  <Star className="h-4 w-4 text-yellow-400" /><span className="text-xs font-medium text-gray-600">4.8</span>
+   981→                </div>
+   982→              </div>
+   983→            </div>
+   984→            {!isOwner && (<>
+   985→              <Separator />
+   986→              <div className="mt-4">
+   987→                <h4 className="font-semibold text-sm mb-3">Message Seller</h4>
+   988→                {messages.length > 0 && (
+   989→                  <div className="max-h-48 overflow-y-auto space-y-2 mb-3 p-3 bg-gray-50 rounded-xl">
+   990→                    {messages.map((msg) => (
+   991→                      <div key={msg.id} className={`flex gap-2 ${msg.senderId === userId ? 'flex-row-reverse' : ''}`}>
+   992→                        <Avatar className="h-6 w-6 shrink-0"><AvatarImage src={msg.sender.avatar} /><AvatarFallback className="text-[8px]">{msg.sender.name.charAt(0)}</AvatarFallback></Avatar>
+   993→                        <div className={`max-w-[80%] px-3 py-1.5 rounded-xl text-sm ${msg.senderId === userId ? 'bg-emerald-600 text-white' : 'bg-white border border-gray-200 text-gray-700'}`}>
+   994→                          <p>{msg.content}</p><p className={`text-[10px] mt-0.5 ${msg.senderId === userId ? 'text-emerald-200' : 'text-gray-400'}`}>{timeAgo(msg.createdAt)}</p>
+   995→                        </div>
+   996→                      </div>
+   997→                    ))}
+   998→                  </div>
+   999→                )}
+  1000→                <div className="flex gap-2">
+  1001→                  <Input placeholder="Type a message..." value={newMessage} onChange={(e) => setNewMessage(e.target.value)} onKeyDown={(e) => e.key === 'Enter' && handleSendMessage()} className="flex-1 h-10 rounded-xl border-gray-200" />
+  1002→                  <Button onClick={handleSendMessage} disabled={!newMessage.trim()} className="h-10 w-10 p-0 rounded-xl bg-emerald-600 hover:bg-emerald-700"><Send className="h-4 w-4" /></Button>
+  1003→                </div>
+  1004→              </div>
+  1005→            </>)}
+  1006→            {isOwner && <div className="mt-4 p-3 bg-amber-50 rounded-xl text-sm text-amber-700 flex items-center gap-2"><Shield className="h-4 w-4" /> This is your listing</div>}
+  1007→          </div>
+  1008→        </div>
+  1009→      </DialogContent>
+  1010→    </Dialog>
+  1011→  )
+  1012→}
+  1013→
+  1014→// ─── Create Listing Dialog ───
+  1015→function CreateListingDialog({ categories, universities, onCreated }: { categories: Category[]; universities: University[]; onCreated: () => void }) {
+  1016→  const { viewMode, setViewMode, currentUser, currentUserId } = useMarketplaceStore()
+  1017→  const [title, setTitle] = useState('')
+  1018→  const [description, setDescription] = useState('')
+  1019→  const [price, setPrice] = useState('')
+  1020→  const [categoryId, setCategoryId] = useState('')
+  1021→  const [universityId, setUniversityId] = useState('')
+  1022→  const [campus, setCampus] = useState('')
+  1023→  const [location, setLocation] = useState('')
+  1024→  const [condition, setCondition] = useState('Used')
+  1025→  const [negotiable, setNegotiable] = useState(true)
+  1026→  const [imageUrls, setImageUrls] = useState('')
+  1027→  const [isSubmitting, setIsSubmitting] = useState(false)
+  1028→  const userId = currentUser?.id || currentUserId || 'user-1'
+  1029→
+  1030→  const handleSubmit = async (e: React.FormEvent) => {
+  1031→    e.preventDefault()
+  1032→    if (!title || !description || !categoryId || !location) { toast.error('Please fill in all required fields'); return }
+  1033→    setIsSubmitting(true)
+  1034→    try {
+  1035→      const images = imageUrls.split('\n').map((u) => u.trim()).filter(Boolean)
+  1036→      const res = await fetch('/api/listings', {
+  1037→        method: 'POST',
+  1038→        headers: { 'Content-Type': 'application/json' },
+  1039→        body: JSON.stringify({ title, description, price: parseFloat(price) || 0, categoryId, universityId: universityId || null, campus, location, condition, negotiable, images, sellerId: userId }),
+  1040→      })
+  1041→      if (res.ok) { toast.success('Listing created!'); setViewMode('browse'); onCreated() } else { toast.error('Failed to create listing') }
+  1042→    } catch { toast.error('Failed to create listing') } finally { setIsSubmitting(false) }
+  1043→  }
+  1044→
+  1045→  return (
+  1046→    <Dialog open={viewMode === 'create'} onOpenChange={(open) => !open && setViewMode('browse')}>
+  1047→      <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
+  1048→        <DialogHeader>
+  1049→          <DialogTitle className="text-xl flex items-center gap-2"><div className="w-8 h-8 bg-emerald-100 rounded-lg flex items-center justify-center"><Plus className="h-4 w-4 text-emerald-600" /></div>Create New Listing</DialogTitle>
+  1050→          <DialogDescription className="sr-only">Create a new listing</DialogDescription>
+  1051→        </DialogHeader>
+  1052→        <form onSubmit={handleSubmit} className="space-y-5 mt-4">
+  1053→          <div><Label className="text-sm font-medium">Photos (one URL per line)</Label><Textarea placeholder="https://example.com/photo.jpg" value={imageUrls} onChange={(e) => setImageUrls(e.target.value)} className="mt-1.5 min-h-[80px] text-sm" /></div>
+  1054→          <div><Label className="text-sm font-medium">Title *</Label><Input placeholder="What are you selling?" value={title} onChange={(e) => setTitle(e.target.value)} className="mt-1.5" required /></div>
+  1055→          <div><Label className="text-sm font-medium">Description *</Label><Textarea placeholder="Describe your item..." value={description} onChange={(e) => setDescription(e.target.value)} className="mt-1.5 min-h-[100px]" required /></div>
+  1056→          <div className="grid grid-cols-2 gap-3">
+  1057→            <div><Label className="text-sm font-medium">Price (ZAR)</Label><div className="relative mt-1.5"><span className="absolute left-3 top-1/2 -translate-y-1/2 text-sm text-gray-400 font-medium">R</span><Input type="number" placeholder="0" value={price} onChange={(e) => setPrice(e.target.value)} className="pl-8" min="0" /></div><label className="flex items-center gap-2 mt-2 cursor-pointer"><input type="checkbox" checked={negotiable} onChange={(e) => setNegotiable(e.target.checked)} className="rounded border-gray-300 text-emerald-600 focus:ring-emerald-500" /><span className="text-xs text-gray-600">Negotiable</span></label></div>
+  1058→            <div><Label className="text-sm font-medium">Condition</Label><Select value={condition} onValueChange={setCondition}><SelectTrigger className="mt-1.5"><SelectValue /></SelectTrigger><SelectContent><SelectItem value="New">New</SelectItem><SelectItem value="Like New">Like New</SelectItem><SelectItem value="Good">Good</SelectItem><SelectItem value="Fair">Fair</SelectItem><SelectItem value="Used">Used</SelectItem></SelectContent></Select></div>
+  1059→          </div>
+  1060→          <div><Label className="text-sm font-medium">Category *</Label><Select value={categoryId} onValueChange={setCategoryId}><SelectTrigger className="mt-1.5"><SelectValue placeholder="Select category" /></SelectTrigger><SelectContent>{categories.map((cat) => <SelectItem key={cat.id} value={cat.id}><div className="flex items-center gap-2">{ICON_MAP_SM[cat.icon]}{cat.name}</div></SelectItem>)}</SelectContent></Select></div>
+  1061→          <div className="grid grid-cols-2 gap-3">
+  1062→            <div><Label className="text-sm font-medium">University</Label><Select value={universityId || 'none'} onValueChange={(v) => setUniversityId(v === 'none' ? '' : v)}><SelectTrigger className="mt-1.5"><SelectValue placeholder="Select" /></SelectTrigger><SelectContent><SelectItem value="none">None</SelectItem>{universities.map((uni) => <SelectItem key={uni.id} value={uni.id}>{uni.shortName} - {uni.name}</SelectItem>)}</SelectContent></Select></div>
+  1063→            <div><Label className="text-sm font-medium">Campus</Label><Input placeholder="e.g., Upper Campus" value={campus} onChange={(e) => setCampus(e.target.value)} className="mt-1.5" /></div>
+  1064→          </div>
+  1065→          <div><Label className="text-sm font-medium">Location *</Label><Input placeholder="e.g., UCT, Rondebosch" value={location} onChange={(e) => setLocation(e.target.value)} className="mt-1.5" required /></div>
+  1066→          <Button type="submit" disabled={isSubmitting} className="w-full bg-emerald-600 hover:bg-emerald-700 h-11 rounded-xl font-medium">{isSubmitting ? 'Creating...' : 'Publish Listing'}</Button>
+  1067→        </form>
+  1068→      </DialogContent>
+  1069→    </Dialog>
+  1070→  )
+  1071→}
+  1072→
+  1073→// ─── Hero Banner ───
+  1074→function HeroBanner() {
+  1075→  return (
+  1076→    <div className="bg-gradient-to-r from-emerald-600 via-emerald-500 to-teal-500 text-white">
+  1077→      <div className="max-w-7xl mx-auto px-4 py-8 md:py-12">
+  1078→        <div className="flex flex-col md:flex-row items-center justify-between gap-6">
+  1079→          <div className="text-center md:text-left">
+  1080→            <h2 className="text-2xl md:text-3xl font-bold mb-2">Student Marketplace</h2>
+  1081→            <p className="text-emerald-100 text-sm md:text-base max-w-lg">Buy and sell textbooks, electronics, accommodation, and more with students across South Africa. Trusted by students at 10+ universities.</p>
+  1082→            <div className="flex items-center justify-center md:justify-start gap-4 mt-4 text-sm">
+  1083→              <span className="flex items-center gap-1.5 bg-white/15 px-3 py-1.5 rounded-full"><TrendingUp className="h-4 w-4" /> 27+ Active Listings</span>
+  1084→              <span className="flex items-center gap-1.5 bg-white/15 px-3 py-1.5 rounded-full"><Shield className="h-4 w-4" /> Verified Students</span>
+  1085→            </div>
+  1086→          </div>
+  1087→          <div className="hidden md:grid grid-cols-3 gap-3 text-center">
+  1088→            {[{ icon: <BookOpen className="h-6 w-6" />, label: 'Textbooks', count: '6' }, { icon: <Smartphone className="h-6 w-6" />, label: 'Electronics', count: '6' }, { icon: <Home className="h-6 w-6" />, label: 'Accommodation', count: '3' }].map((item) => (
+  1089→              <div key={item.label} className="bg-white/10 backdrop-blur-sm rounded-xl p-3"><div className="flex justify-center mb-1">{item.icon}</div><p className="text-xs font-medium">{item.label}</p><p className="text-lg font-bold">{item.count}</p></div>
+  1090→            ))}
+  1091→          </div>
+  1092→        </div>
+  1093→      </div>
+  1094→    </div>
+  1095→  )
+  1096→}
+  1097→
+  1098→// ─── Footer ───
+  1099→function Footer() {
+  1100→  return (
+  1101→    <footer className="border-t border-gray-200 bg-white mt-auto">
+  1102→      <div className="max-w-7xl mx-auto px-4 py-8">
+  1103→        <div className="grid grid-cols-2 md:grid-cols-4 gap-8">
+  1104→          <div>
+  1105→            <div className="flex items-center gap-2 mb-3"><div className="w-8 h-8 bg-emerald-600 rounded-lg flex items-center justify-center"><Tag className="h-4 w-4 text-white" /></div><span className="font-bold text-gray-900">StudentMarket</span></div>
+  1106→            <p className="text-xs text-gray-500 leading-relaxed">South Africa&apos;s student-to-student marketplace.</p>
+  1107→          </div>
+  1108→          <div><h4 className="font-semibold text-sm text-gray-900 mb-3">Popular Categories</h4><ul className="space-y-1.5 text-xs text-gray-500"><li className="hover:text-emerald-600 cursor-pointer">Textbooks & Notes</li><li className="hover:text-emerald-600 cursor-pointer">Electronics</li><li className="hover:text-emerald-600 cursor-pointer">Accommodation</li><li className="hover:text-emerald-600 cursor-pointer">Clothing</li></ul></div>
+  1109→          <div><h4 className="font-semibold text-sm text-gray-900 mb-3">Top Campuses</h4><ul className="space-y-1.5 text-xs text-gray-500"><li className="hover:text-emerald-600 cursor-pointer">UCT</li><li className="hover:text-emerald-600 cursor-pointer">Wits</li><li className="hover:text-emerald-600 cursor-pointer">Stellenbosch</li><li className="hover:text-emerald-600 cursor-pointer">University of Pretoria</li></ul></div>
+  1110→          <div><h4 className="font-semibold text-sm text-gray-900 mb-3">Support</h4><ul className="space-y-1.5 text-xs text-gray-500"><li className="hover:text-emerald-600 cursor-pointer">Help Centre</li><li className="hover:text-emerald-600 cursor-pointer">Safety Tips</li><li className="hover:text-emerald-600 cursor-pointer">Report a Problem</li><li className="hover:text-emerald-600 cursor-pointer">Terms & Conditions</li></ul></div>
+  1111→        </div>
+  1112→        <Separator className="my-6" /><p className="text-xs text-gray-400 text-center">Made with care for South African students.</p>
+  1113→      </div>
+  1114→    </footer>
+  1115→  )
+  1116→}
+  1117→
+  1118→// ─── Main Page ───
+  1119→export default function MarketplacePage() {
+  1120→  const {
+  1121→    viewMode, setSelectedListing, searchQuery, selectedCategory, selectedUniversity,
+  1122→    selectedCondition, sortBy,
+  1123→  } = useMarketplaceStore()
+  1124→
+  1125→  const [listings, setListings] = useState<ListingDetail[]>([])
+  1126→  const [categories, setCategories] = useState<Category[]>([])
+  1127→  const [universities, setUniversities] = useState<University[]>([])
+  1128→  const [storyGroups, setStoryGroups] = useState<StoryGroup[]>([])
+  1129→  const [isLoading, setIsLoading] = useState(true)
+  1130→  const [refreshKey, setRefreshKey] = useState(0)
+  1131→
+  1132→  const fetchListings = useCallback(async () => {
+  1133→    setIsLoading(true)
+  1134→    try {
+  1135→      const params = new URLSearchParams()
+  1136→      if (searchQuery) params.set('search', searchQuery)
+  1137→      if (selectedCategory) params.set('categoryId', selectedCategory)
+  1138→      if (selectedUniversity) params.set('universityId', selectedUniversity)
+  1139→      if (selectedCondition) params.set('condition', selectedCondition)
+  1140→      if (sortBy) params.set('sortBy', sortBy)
+  1141→      const res = await fetch(`/api/listings?${params}`)
+  1142→      if (res.ok) { const data = await res.json(); setListings(data.listings) }
+  1143→    } catch { toast.error('Failed to load listings') } finally { setIsLoading(false) }
+  1144→  }, [searchQuery, selectedCategory, selectedUniversity, selectedCondition, sortBy])
+  1145→
+  1146→  const fetchStories = useCallback(async () => {
+  1147→    try {
+  1148→      const res = await fetch('/api/stories')
+  1149→      if (res.ok) setStoryGroups(await res.json())
+  1150→    } catch { /* ignore */ }
+  1151→  }, [])
+  1152→
+  1153→  useEffect(() => {
+  1154→    fetch('/api/categories').then((r) => r.json()).then(setCategories).catch(() => {})
+  1155→    fetch('/api/universities').then((r) => r.json()).then(setUniversities).catch(() => {})
+  1156→    fetchStories()
+  1157→  }, [])
+  1158→
+  1159→  useEffect(() => { fetchListings() }, [fetchListings, refreshKey])
+  1160→
+  1161→  const handleSelectListing = (listing: ListingDetail) => setSelectedListing(listing)
+  1162→
+  1163→  const [viewingStoryGroup, setViewingStoryGroup] = useState<StoryGroup | null>(null)
+  1164→  const [viewingStoryIndex, setViewingStoryIndex] = useState(0)
+  1165→
+  1166→  const handleStoryClick = (group: StoryGroup) => {
+  1167→    setViewingStoryGroup(group)
+  1168→    setViewingStoryIndex(0)
+  1169→  }
+  1170→
+  1171→  const handleStoryClose = () => {
+  1172→    setViewingStoryGroup(null)
+  1173→    setViewingStoryIndex(0)
+  1174→  }
+  1175→
+  1176→  const handleCreated = () => { setRefreshKey((k) => k + 1); fetchStories() }
+  1177→
+  1178→  return (
+  1179→    <div className="min-h-screen flex flex-col bg-gray-50">
+  1180→      <Header />
+  1181→
+  1182→      {viewMode === 'browse' && (<>
+  1183→        <StoriesTray storyGroups={storyGroups} onStoryClick={handleStoryClick} />
+  1184→        <CategoryBar categories={categories} />
+  1185→        <FilterBar universities={universities} />
+  1186→        <HeroBanner />
+  1187→        <main className="flex-1">
+  1188→          {isLoading ? (
+  1189→            <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-3 p-4">
+  1190→              {Array.from({ length: 12 }).map((_, i) => <Card key={i} className="overflow-hidden"><Skeleton className="aspect-square" /><CardContent className="p-3 space-y-2"><Skeleton className="h-4 w-3/4" /><Skeleton className="h-3 w-1/2" /></CardContent></Card>)}
+  1191→            </div>
+  1192→          ) : <ListingGrid listings={listings} onSelectListing={handleSelectListing} />}
+  1193→        </main>
+  1194→      </>)}
+  1195→
+  1196→      {/* Modals */}
+  1197→      <ListingDetailDialog />
+  1198→      <LoginDialog />
+  1199→      <SignupDialog />
+  1200→      <CreateListingDialog categories={categories} universities={universities} onCreated={handleCreated} />
+  1201→      <CreateStoryDialog onCreated={handleCreated} />
+  1202→
+  1203→      {/* Story Viewer */}
+  1204→      {viewingStoryGroup && <StoryViewer storyGroups={storyGroups} viewingStoryGroup={viewingStoryGroup} viewingStoryIndex={viewingStoryIndex} setViewingStoryGroup={setViewingStoryGroup} setViewingStoryIndex={setViewingStoryIndex} onClose={handleStoryClose} />}
+  1205→
+  1206→      <Footer />
+  1207→    </div>
+  1208→  )
+  1209→}
+
+[showing lines 800-1209 of 1210; use offset=1210 with limit to continue reading]

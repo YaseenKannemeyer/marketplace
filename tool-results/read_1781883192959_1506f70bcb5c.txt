@@ -1,0 +1,1210 @@
+     1→     1→'use client'
+     2→     2→
+     3→     3→import { useState, useEffect, useCallback, useRef } from 'react'
+     4→     4→import { useMarketplaceStore, type ListingDetail, type Category, type University, type Message, type StoryGroup, type StoryItem } from '@/store/marketplace'
+     5→     5→import { Button } from '@/components/ui/button'
+     6→     6→import { Input } from '@/components/ui/input'
+     7→     7→import { Badge } from '@/components/ui/badge'
+     8→     8→import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
+     9→     9→import { Card, CardContent } from '@/components/ui/card'
+    10→    10→import {
+    11→    11→  Dialog,
+    12→    12→  DialogContent,
+    13→    13→  DialogDescription,
+    14→    14→  DialogHeader,
+    15→    15→  DialogTitle,
+    16→    16→} from '@/components/ui/dialog'
+    17→    17→import {
+    18→    18→  Select,
+    19→    19→  SelectContent,
+    20→    20→  SelectItem,
+    21→    21→  SelectTrigger,
+    22→    22→  SelectValue,
+    23→    23→} from '@/components/ui/select'
+    24→    24→import { Textarea } from '@/components/ui/textarea'
+    25→    25→import { Label } from '@/components/ui/label'
+    26→    26→import { Separator } from '@/components/ui/separator'
+    27→    27→import { Skeleton } from '@/components/ui/skeleton'
+    28→    28→import { toast } from 'sonner'
+    29→    29→import { motion, AnimatePresence } from 'framer-motion'
+    30→    30→import {
+    31→    31→  Search, Plus, MapPin, Clock, Eye, Heart, Share2, X,
+    32→    32→  ChevronLeft, ChevronRight, BookOpen, Smartphone, Home, Shirt,
+    33→    33→  Car, Armchair, Dumbbell, Briefcase, Coffee, Gift, ArrowUpDown,
+    34→    34→  Send, User, GraduationCap, LayoutGrid, SlidersHorizontal,
+    35→    35→  TrendingUp, CheckCircle2, Tag, Star, Shield, Mail, Lock,
+    36→    36→  EyeOff, ArrowRight, CirclePlus, Play, Volume2,
+    37→    37→  VolumeX, ChevronUp, BadgeCheck, LogOut, Menu, Camera,
+    38→    38→} from 'lucide-react'
+    39→    39→
+    40→    40→const ICON_MAP: Record<string, React.ReactNode> = {
+    41→    41→  'book-open': <BookOpen className="h-5 w-5" />,
+    42→    42→  'smartphone': <Smartphone className="h-5 w-5" />,
+    43→    43→  'home': <Home className="h-5 w-5" />,
+    44→    44→  'shirt': <Shirt className="h-5 w-5" />,
+    45→    45→  'car': <Car className="h-5 w-5" />,
+    46→    46→  'armchair': <Armchair className="h-5 w-5" />,
+    47→    47→  'dumbbell': <Dumbbell className="h-5 w-5" />,
+    48→    48→  'briefcase': <Briefcase className="h-5 w-5" />,
+    49→    49→  'coffee': <Coffee className="h-5 w-5" />,
+    50→    50→  'gift': <Gift className="h-5 w-5" />,
+    51→    51→}
+    52→    52→
+    53→    53→const ICON_MAP_SM: Record<string, React.ReactNode> = {
+    54→    54→  'book-open': <BookOpen className="h-4 w-4" />,
+    55→    55→  'smartphone': <Smartphone className="h-4 w-4" />,
+    56→    56→  'home': <Home className="h-4 w-4" />,
+    57→    57→  'shirt': <Shirt className="h-4 w-4" />,
+    58→    58→  'car': <Car className="h-4 w-4" />,
+    59→    59→  'armchair': <Armchair className="h-4 w-4" />,
+    60→    60→  'dumbbell': <Dumbbell className="h-4 w-4" />,
+    61→    61→  'briefcase': <Briefcase className="h-4 w-4" />,
+    62→    62→  'coffee': <Coffee className="h-4 w-4" />,
+    63→    63→  'gift': <Gift className="h-4 w-4" />,
+    64→    64→}
+    65→    65→
+    66→    66→const CONDITIONS = ['All Conditions', 'New', 'Like New', 'Good', 'Fair', 'Used']
+    67→    67→const GRADIENT_PRESETS = [
+    68→    68→  'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
+    69→    69→  'linear-gradient(135deg, #f093fb 0%, #f5576c 100%)',
+    70→    70→  'linear-gradient(135deg, #4facfe 0%, #00f2fe 100%)',
+    71→    71→  'linear-gradient(135deg, #43e97b 0%, #38f9d7 100%)',
+    72→    72→  'linear-gradient(135deg, #fa709a 0%, #fee140 100%)',
+    73→    73→  'linear-gradient(135deg, #a18cd1 0%, #fbc2eb 100%)',
+    74→    74→  'linear-gradient(135deg, #ffecd2 0%, #fcb69f 100%)',
+    75→    75→  'linear-gradient(135deg, #ff9a9e 0%, #fecfef 100%)',
+    76→    76→  'linear-gradient(135deg, #c471f5 0%, #fa71cd 100%)',
+    77→    77→  'linear-gradient(135deg, #48c6ef 0%, #6f86d6 100%)',
+    78→    78→]
+    79→    79→
+    80→    80→function formatPrice(price: number): string {
+    81→    81→  if (price === 0) return 'Free'
+    82→    82→  return `R${price.toLocaleString('en-ZA')}`
+    83→    83→}
+    84→    84→
+    85→    85→function timeAgo(dateStr: string): string {
+    86→    86→  const date = new Date(dateStr)
+    87→    87→  const now = new Date()
+    88→    88→  const seconds = Math.floor((now.getTime() - date.getTime()) / 1000)
+    89→    89→  if (seconds < 60) return 'Just now'
+    90→    90→  if (seconds < 3600) return `${Math.floor(seconds / 60)}m ago`
+    91→    91→  if (seconds < 86400) return `${Math.floor(seconds / 3600)}h ago`
+    92→    92→  if (seconds < 604800) return `${Math.floor(seconds / 86400)}d ago`
+    93→    93→  return date.toLocaleDateString('en-ZA', { day: 'numeric', month: 'short' })
+    94→    94→}
+    95→    95→
+    96→    96→// ─── Stories Tray ───
+    97→    97→function StoriesTray({ storyGroups, onStoryClick }: { storyGroups: StoryGroup[]; onStoryClick: (g: StoryGroup) => void }) {
+    98→    98→  const { currentUser, setShowCreateStory, setViewMode } = useMarketplaceStore()
+    99→    99→  const scrollRef = useRef<HTMLDivElement>(null)
+   100→   100→
+   101→   101→  return (
+   102→   102→    <div className="border-b border-gray-100 bg-white">
+   103→   103→      <div className="max-w-7xl mx-auto px-4 py-3">
+   104→   104→        <div ref={scrollRef} className="flex gap-3 overflow-x-auto no-scrollbar">
+   105→   105→          {/* Add Story Button (logged in) */}
+   106→   106→          {currentUser && (
+   107→   107→            <button
+   108→   108→              onClick={() => setShowCreateStory(true)}
+   109→   109→              className="flex flex-col items-center gap-1.5 shrink-0"
+   110→   110→            >
+   111→   111→              <div className="relative">
+   112→   112→                <div className="w-16 h-16 rounded-full bg-gray-100 flex items-center justify-center border-2 border-dashed border-gray-300">
+   113→   113→                  <CirclePlus className="h-6 w-6 text-emerald-600" />
+   114→   114→                </div>
+   115→   115→              </div>
+   116→   116→              <span className="text-[11px] font-medium text-gray-600 w-16 text-center truncate">Your Story</span>
+   117→   117→            </button>
+   118→   118→          )}
+   119→   119→
+   120→   120→          {/* Login Prompt */}
+   121→   121→          {!currentUser && (
+   122→   122→            <button
+   123→   123→              onClick={() => setViewMode('login')}
+   124→   124→              className="flex flex-col items-center gap-1.5 shrink-0"
+   125→   125→            >
+   126→   126→              <div className="relative">
+   127→   127→                <div className="w-16 h-16 rounded-full bg-gray-50 flex items-center justify-center border-2 border-dashed border-gray-300">
+   128→   128→                  <Camera className="h-6 w-6 text-gray-400" />
+   129→   129→                </div>
+   130→   130→              </div>
+   131→   131→              <span className="text-[11px] font-medium text-gray-400 w-16 text-center truncate">Sign in</span>
+   132→   132→            </button>
+   133→   133→          )}
+   134→   134→
+   135→   135→          {/* Story Circles */}
+   136→   136→          {storyGroups.map((group) => (
+   137→   137→            <button
+   138→   138→              key={group.user.id}
+   139→   139→              onClick={() => onStoryClick(group)}
+   140→   140→              className="flex flex-col items-center gap-1.5 shrink-0 group/story"
+   141→   141→            >
+   142→   142→              <div className="relative">
+   143→   143→                <div
+   144→   144→                  className="w-[68px] h-[68px] rounded-full p-[3px]"
+   145→   145→                  style={{ background: 'linear-gradient(135deg, #16a34a, #0891b2, #7c3aed, #e11d48)' }}
+   146→   146→                >
+   147→   147→                  <div className="w-full h-full rounded-full bg-white p-[2px]">
+   148→   148→                    <Avatar className="w-full h-full">
+   149→   149→                      <AvatarImage src={group.user.avatar || ''} className="object-cover" />
+   150→   150→                      <AvatarFallback className="text-xs">{group.user.name.charAt(0)}</AvatarFallback>
+   151→   151→                    </Avatar>
+   152→   152→                  </div>
+   153→   153→                </div>
+   154→   154→                {group.user.verified && (
+   155→   155→                  <div className="absolute -bottom-0.5 left-1/2 -translate-x-1/2">
+   156→   156→                    <BadgeCheck className="h-4 w-4 text-blue-500 fill-white" />
+   157→   157→                  </div>
+   158→   158→                )}
+   159→   159→              </div>
+   160→   160→              <span className="text-[11px] font-medium text-gray-700 w-16 text-center truncate group-hover/story:text-emerald-600 transition-colors">
+   161→   161→                {group.user.name.split(' ')[0]}
+   162→   162→              </span>
+   163→   163→            </button>
+   164→   164→          ))}
+   165→   165→        </div>
+   166→   166→      </div>
+   167→   167→    </div>
+   168→   168→  )
+   169→   169→}
+   170→   170→
+   171→   171→// ─── Story Viewer ───
+   172→   172→function StoryViewer({ storyGroups, viewingStoryGroup, viewingStoryIndex, setViewingStoryGroup, setViewingStoryIndex, onClose }: { storyGroups: StoryGroup[]; viewingStoryGroup: StoryGroup | null; viewingStoryIndex: number; setViewingStoryGroup: (g: StoryGroup | null) => void; setViewingStoryIndex: (i: number) => void; onClose: () => void }) {
+   173→   173→  const [progress, setProgress] = useState(0)
+   174→   174→  const STORY_DURATION = 5000
+   175→   175→  const group = viewingStoryGroup
+   176→   176→  const story = group?.stories[viewingStoryIndex]
+   177→   177→
+   178→   178→  // Handle auto-advance with a separate effect
+   179→   179→  useEffect(() => {
+   180→   180→    if (!story) return
+   181→   181→    setProgress(0)
+   182→   182→
+   183→   183→    const startTime = Date.now()
+   184→   184→    const timer = setInterval(() => {
+   185→   185→      const elapsed = Date.now() - startTime
+   186→   186→      const pct = Math.min((elapsed / STORY_DURATION) * 100, 100)
+   187→   187→      setProgress(pct)
+   188→   188→
+   189→   189→      if (pct >= 100) {
+   190→   190→        clearInterval(timer)
+   191→   191→        // Auto-advance after duration
+   192→   192→        if (!group) return
+   193→   193→        if (viewingStoryIndex < group.stories.length - 1) {
+   194→   194→          setViewingStoryIndex(viewingStoryIndex + 1)
+   195→   195→        } else {
+   196→   196→          const idx = storyGroups.findIndex((g) => g.user.id === group.user.id)
+   197→   197→          if (idx < storyGroups.length - 1) {
+   198→   198→            setViewingStoryGroup(storyGroups[idx + 1])
+   199→   199→          } else {
+   200→   200→            setViewingStoryGroup(null)
+   201→   201→            onClose()
+   202→   202→          }
+   203→   203→        }
+   204→   204→      }
+   205→   205→    }, 50)
+   206→   206→
+   207→   207→    return () => clearInterval(timer)
+   208→   208→  }, [story?.id]) // eslint-disable-line react-hooks/exhaustive-deps
+   209→   209→
+   210→   210→  if (!group || !story) return null
+   211→   211→
+   212→   212→  return (
+   213→   213→    <div className="fixed inset-0 bg-black flex items-center justify-center" style={{ zIndex: 100 }}>
+   214→   214→      {/* Close button */}
+   215→   215→      <button onClick={() => { setViewingStoryGroup(null); onClose() }} className="absolute top-4 right-4 z-10 text-white/80 hover:text-white">
+   216→   216→        <X className="h-8 w-8" />
+   217→   217→      </button>
+   218→   218→
+   219→   219→      {/* Progress bars */}
+   220→   220→      <div className="absolute top-4 left-4 right-12 z-10 flex gap-1">
+   221→   221→        {group.stories.map((_, i) => (
+   222→   222→          <div key={i} className="flex-1 h-[3px] bg-white/30 rounded-full overflow-hidden">
+   223→   223→            <div
+   224→   224→              className="h-full bg-white rounded-full transition-all duration-100"
+   225→   225→              style={{ width: i < viewingStoryIndex ? '100%' : i === viewingStoryIndex ? `${progress}%` : '0%' }}
+   226→   226→            />
+   227→   227→          </div>
+   228→   228→        ))}
+   229→   229→      </div>
+   230→   230→
+   231→   231→      {/* Story content */}
+   232→   232→      <div className="relative w-full max-w-md h-[90vh] max-h-[800px] rounded-2xl overflow-hidden cursor-pointer select-none" onClick={(e) => { e.stopPropagation(); goNext() }}>
+   233→   233→        {/* Background */}
+   234→   234→        {story.type === 'image' && story.mediaUrl ? (
+   235→   235→          <img src={story.mediaUrl} alt="" className="absolute inset-0 w-full h-full object-cover" />
+   236→   236→        ) : (
+   237→   237→          <div className="absolute inset-0" style={{ background: story.backgroundColor || '#333' }} />
+   238→   238→        )}
+   239→   239→
+   240→   240→        {/* Gradient overlays */}
+   241→   241→        <div className="absolute inset-x-0 top-0 h-32 bg-gradient-to-b from-black/40 to-transparent" />
+   242→   242→        <div className="absolute inset-x-0 bottom-0 h-40 bg-gradient-to-t from-black/60 to-transparent" />
+   243→   243→
+   244→   244→        {/* User header */}
+   245→   245→        <div className="absolute top-8 left-4 right-4 flex items-center gap-3">
+   246→   246→          <Avatar className="h-10 w-10 border-2 border-white">
+   247→   247→            <AvatarImage src={group.user.avatar || ''} />
+   248→   248→            <AvatarFallback>{group.user.name.charAt(0)}</AvatarFallback>
+   249→   249→          </Avatar>
+   250→   250→          <div>
+   251→   251→            <div className="flex items-center gap-1.5">
+   252→   252→              <span className="text-white font-semibold text-sm">{group.user.name}</span>
+   253→   253→              {group.user.verified && <BadgeCheck className="h-4 w-4 text-blue-400 fill-white" />}
+   254→   254→            </div>
+   255→   255→            <span className="text-white/70 text-xs">{timeAgo(story.createdAt)}</span>
+   256→   256→          </div>
+   257→   257→        </div>
+   258→   258→
+   259→   259→        {/* Caption */}
+   260→   260→        {story.caption && (
+   261→   261→          <div className="absolute bottom-8 left-4 right-4">
+   262→   262→            <p className="text-white text-lg font-medium leading-snug drop-shadow-lg">{story.caption}</p>
+   263→   263→            {group.user.university && (
+   264→   264→              <p className="text-white/60 text-sm mt-1 flex items-center gap-1">
+   265→   265→                <GraduationCap className="h-3.5 w-3.5" />
+   266→   266→                {group.user.university}
+   267→   267→              </p>
+   268→   268→            )}
+   269→   269→          </div>
+   270→   270→        )}
+   271→   271→      </div>
+   272→   272→
+   273→   273→      {/* Navigation - left/right tap zones */}
+   274→   274→      <div className="absolute inset-y-0 left-0 w-1/3 cursor-pointer" onClick={(e) => { e.stopPropagation(); if (viewingStoryIndex > 0) setViewingStoryIndex(viewingStoryIndex - 1) }} />
+   275→   275→      <div className="absolute inset-y-0 right-0 w-1/3 cursor-pointer" onClick={(e) => { e.stopPropagation(); setViewingStoryGroup(null); onClose() }} />
+   276→   276→    </div>
+   277→   277→  )
+   278→   278→}
+   279→   279→
+   280→   280→// ─── Create Story Dialog ───
+   281→   281→function CreateStoryDialog({ onCreated }: { onCreated: () => void }) {
+   282→   282→  const { showCreateStory, setShowCreateStory, currentUser } = useMarketplaceStore()
+   283→   283→  const [caption, setCaption] = useState('')
+   284→   284→  const [selectedGradient, setSelectedGradient] = useState(GRADIENT_PRESETS[0])
+   285→   285→  const [isSubmitting, setIsSubmitting] = useState(false)
+   286→   286→
+   287→   287→  const handleCreate = async () => {
+   288→   288→    if (!caption.trim() || !currentUser) return
+   289→   289→    setIsSubmitting(true)
+   290→   290→    try {
+   291→   291→      const res = await fetch('/api/stories', {
+   292→   292→        method: 'POST',
+   293→   293→        headers: { 'Content-Type': 'application/json' },
+   294→   294→        body: JSON.stringify({
+   295→   295→          userId: currentUser.id,
+   296→   296→          caption: caption.trim(),
+   297→   297→          type: 'gradient',
+   298→   298→          backgroundColor: selectedGradient,
+   299→   299→        }),
+   300→   300→      })
+   301→   301→      if (res.ok) {
+   302→   302→        toast.success('Story posted!')
+   303→   303→        setCaption('')
+   304→   304→        setShowCreateStory(false)
+   305→   305→        onCreated()
+   306→   306→      }
+   307→   307→    } catch {
+   308→   308→      toast.error('Failed to post story')
+   309→   309→    } finally {
+   310→   310→      setIsSubmitting(false)
+   311→   311→    }
+   312→   312→  }
+   313→   313→
+   314→   314→  return (
+   315→   315→    <Dialog open={showCreateStory} onOpenChange={(open) => !open && setShowCreateStory(false)}>
+   316→   316→      <DialogContent className="max-w-md">
+   317→   317→        <DialogHeader>
+   318→   318→          <DialogTitle className="text-lg flex items-center gap-2">
+   319→   319→            <Camera className="h-5 w-5 text-emerald-600" />
+   320→   320→            Create Story
+   321→   321→          </DialogTitle>
+   322→   322→          <DialogDescription className="sr-only">Create a new story for the marketplace</DialogDescription>
+   323→   323→        </DialogHeader>
+   324→   324→
+   325→   325→        <div className="space-y-4 mt-2">
+   326→   326→          {/* Preview */}
+   327→   327→          <div className="relative aspect-[9/16] max-h-80 rounded-2xl overflow-hidden">
+   328→   328→            <div className="w-full h-full flex items-end p-4" style={{ background: selectedGradient }}>
+   329→   329→              <div className="text-white">
+   330→   330→                <p className="text-xl font-bold drop-shadow-lg">{caption || 'Your story caption...'}</p>
+   331→   331→                <p className="text-white/70 text-sm mt-1 flex items-center gap-1">
+   332→   332→                  <GraduationCap className="h-3.5 w-3.5" />
+   333→   333→                  {currentUser?.university || 'StudentMarket'}
+   334→   334→                </p>
+   335→   335→              </div>
+   336→   336→            </div>
+   337→   337→          </div>
+   338→   338→
+   339→   339→          {/* Caption */}
+   340→   340→          <div>
+   341→   341→            <Label className="text-sm font-medium">Caption</Label>
+   342→   342→            <Input
+   343→   343→              placeholder="What's happening?"
+   344→   344→              value={caption}
+   345→   345→              onChange={(e) => setCaption(e.target.value)}
+   346→   346→              maxLength={200}
+   347→   347→              className="mt-1"
+   348→   348→            />
+   349→   349→          </div>
+   350→   350→
+   351→   351→          {/* Background */}
+   352→   352→          <div>
+   353→   353→            <Label className="text-sm font-medium">Background</Label>
+   354→   354→            <div className="flex flex-wrap gap-2 mt-2">
+   355→   355→              {GRADIENT_PRESETS.map((g, i) => (
+   356→   356→                <button
+   357→   357→                  key={i}
+   358→   358→                  onClick={() => setSelectedGradient(g)}
+   359→   359→                  className={`w-10 h-10 rounded-full border-2 transition-all ${
+   360→   360→                    selectedGradient === g ? 'border-emerald-500 scale-110' : 'border-transparent'
+   361→   361→                  }`}
+   362→   362→                  style={{ background: g }}
+   363→   363→                />
+   364→   364→              ))}
+   365→   365→            </div>
+   366→   366→          </div>
+   367→   367→
+   368→   368→          <Button onClick={handleCreate} disabled={!caption.trim() || isSubmitting} className="w-full bg-emerald-600 hover:bg-emerald-700 rounded-xl">
+   369→   369→            {isSubmitting ? 'Posting...' : 'Post Story'}
+   370→   370→          </Button>
+   371→   371→        </div>
+   372→   372→      </DialogContent>
+   373→   373→    </Dialog>
+   374→   374→  )
+   375→   375→}
+   376→   376→
+   377→   377→// ─── Login Dialog ───
+   378→   378→function LoginDialog() {
+   379→   379→  const { viewMode, setViewMode, setCurrentUser } = useMarketplaceStore()
+   380→   380→  const [email, setEmail] = useState('')
+   381→   381→  const [password, setPassword] = useState('')
+   382→   382→  const [showPassword, setShowPassword] = useState(false)
+   383→   383→  const [isLoading, setIsLoading] = useState(false)
+   384→   384→  const [error, setError] = useState('')
+   385→   385→
+   386→   386→  const handleLogin = async (e: React.FormEvent) => {
+   387→   387→    e.preventDefault()
+   388→   388→    setError('')
+   389→   389→    setIsLoading(true)
+   390→   390→    try {
+   391→   391→      const res = await fetch('/api/auth/login', {
+   392→   392→        method: 'POST',
+   393→   393→        headers: { 'Content-Type': 'application/json' },
+   394→   394→        body: JSON.stringify({ email, password }),
+   395→   395→      })
+   396→   396→      const data = await res.json()
+   397→   397→      if (res.ok) {
+   398→   398→        setCurrentUser(data)
+   399→   399→        setViewMode('browse')
+   400→   400→        toast.success(`Welcome back, ${data.name}!`)
+   401→   401→      } else {
+   402→   402→        setError(data.error || 'Login failed')
+   403→   403→      }
+   404→   404→    } catch {
+   405→   405→      setError('Something went wrong. Please try again.')
+   406→   406→    } finally {
+   407→   407→      setIsLoading(false)
+   408→   408→    }
+   409→   409→  }
+   410→   410→
+   411→   411→  return (
+   412→   412→    <Dialog open={viewMode === 'login'} onOpenChange={(open) => !open && setViewMode('browse')}>
+   413→   413→      <DialogContent className="max-w-sm">
+   414→   414→        <DialogHeader>
+   415→   415→          <DialogTitle className="text-xl">Welcome Back</DialogTitle>
+   416→   416→          <DialogDescription>Sign in to your StudentMarket account</DialogDescription>
+   417→   417→        </DialogHeader>
+   418→   418→
+   419→   419→        <form onSubmit={handleLogin} className="space-y-4 mt-2">
+   420→   420→          {error && (
+   421→   421→            <div className="p-3 bg-red-50 border border-red-200 rounded-lg text-sm text-red-600">{error}</div>
+   422→   422→          )}
+   423→   423→
+   424→   424→          <div>
+   425→   425→            <Label className="text-sm font-medium">Email</Label>
+   426→   426→            <div className="relative mt-1.5">
+   427→   427→              <Mail className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400" />
+   428→   428→              <Input type="email" placeholder="you@uct.ac.za" value={email} onChange={(e) => setEmail(e.target.value)} className="pl-10" required />
+   429→   429→            </div>
+   430→   430→          </div>
+   431→   431→
+   432→   432→          <div>
+   433→   433→            <Label className="text-sm font-medium">Password</Label>
+   434→   434→            <div className="relative mt-1.5">
+   435→   435→              <Lock className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400" />
+   436→   436→              <Input type={showPassword ? 'text' : 'password'} placeholder="Enter password" value={password} onChange={(e) => setPassword(e.target.value)} className="pl-10 pr-10" required />
+   437→   437→              <button type="button" onClick={() => setShowPassword(!showPassword)} className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600">
+   438→   438→                {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+   439→   439→              </button>
+   440→   440→            </div>
+   441→   441→          </div>
+   442→   442→
+   443→   443→          <Button type="submit" disabled={isLoading} className="w-full bg-emerald-600 hover:bg-emerald-700 rounded-xl h-11 font-medium">
+   444→   444→            {isLoading ? 'Signing in...' : 'Sign In'}
+   445→   445→          </Button>
+   446→   446→
+   447→   447→          <div className="text-center text-sm">
+   448→   448→            <span className="text-gray-500">Don&apos;t have an account? </span>
+   449→   449→            <button type="button" onClick={() => setViewMode('signup')} className="text-emerald-600 font-semibold hover:underline">
+   450→   450→              Sign Up
+   451→   451→            </button>
+   452→   452→          </div>
+   453→   453→
+   454→   454→          <Separator />
+   455→   455→
+   456→   456→          <p className="text-xs text-gray-400 text-center">
+   457→   457→            Demo: use any email ending in .ac.za with password <strong>password123</strong>
+   458→   458→          </p>
+   459→   459→        </form>
+   460→   460→      </DialogContent>
+   461→   461→    </Dialog>
+   462→   462→  )
+   463→   463→}
+   464→   464→
+   465→   465→// ─── Signup Dialog ───
+   466→   466→function SignupDialog() {
+   467→   467→  const { viewMode, setViewMode, setCurrentUser } = useMarketplaceStore()
+   468→   468→  const [name, setName] = useState('')
+   469→   469→  const [email, setEmail] = useState('')
+   470→   470→  const [password, setPassword] = useState('')
+   471→   471→  const [confirmPassword, setConfirmPassword] = useState('')
+   472→   472→  const [university, setUniversity] = useState('')
+   473→   473→  const [showPassword, setShowPassword] = useState(false)
+   474→   474→  const [isLoading, setIsLoading] = useState(false)
+   475→   475→  const [error, setError] = useState('')
+   476→   476→  const [passwordStrength, setPasswordStrength] = useState({ score: 0, label: '', color: '' })
+   477→   477→
+   478→   478→  const SA_UNIVERSITIES = ['UCT', 'Wits', 'Stellenbosch', 'UP', 'UKZN', 'UJ', 'Rhodes', 'NWU', 'UFS', 'UL', 'CPUT', 'DUT', 'TUT', 'UNISA', 'Other']
+   479→   479→
+   480→   480→  const checkPasswordStrength = (pw: string) => {
+   481→   481→    let score = 0
+   482→   482→    if (pw.length >= 8) score++
+   483→   483→    if (/[A-Z]/.test(pw)) score++
+   484→   484→    if (/[0-9]/.test(pw)) score++
+   485→   485→    if (/[^A-Za-z0-9]/.test(pw)) score++
+   486→   486→    if (score <= 1) return { score, label: 'Weak', color: 'bg-red-500' }
+   487→   487→    if (score <= 2) return { score, label: 'Fair', color: 'bg-yellow-500' }
+   488→   488→    if (score <= 3) return { score, label: 'Good', color: 'bg-emerald-500' }
+   489→   489→    return { score, label: 'Strong', color: 'bg-emerald-700' }
+   490→   490→  }
+   491→   491→
+   492→   492→  useEffect(() => {
+   493→   493→    setPasswordStrength(checkPasswordStrength(password))
+   494→   494→  }, [password])
+   495→   495→
+   496→   496→  const handleSignup = async (e: React.FormEvent) => {
+   497→   497→    e.preventDefault()
+   498→   498→    setError('')
+   499→   499→
+   500→   500→    if (password !== confirmPassword) {
+   501→   501→      setError('Passwords do not match')
+   502→   502→      return
+   503→   503→    }
+   504→   504→
+   505→   505→    setIsLoading(true)
+   506→   506→    try {
+   507→   507→      const res = await fetch('/api/auth/signup', {
+   508→   508→        method: 'POST',
+   509→   509→        headers: { 'Content-Type': 'application/json' },
+   510→   510→        body: JSON.stringify({ name, email, password, university }),
+   511→   511→      })
+   512→   512→      const data = await res.json()
+   513→   513→      if (res.ok) {
+   514→   514→        setCurrentUser(data)
+   515→   515→        setViewMode('browse')
+   516→   516→        toast.success(data.message || 'Account created!')
+   517→   517→      } else {
+   518→   518→        setError(data.error || 'Signup failed')
+   519→   519→      }
+   520→   520→    } catch {
+   521→   521→      setError('Something went wrong. Please try again.')
+   522→   522→    } finally {
+   523→   523→      setIsLoading(false)
+   524→   524→    }
+   525→   525→  }
+   526→   526→
+   527→   527→  return (
+   528→   528→    <Dialog open={viewMode === 'signup'} onOpenChange={(open) => !open && setViewMode('browse')}>
+   529→   529→      <DialogContent className="max-w-sm max-h-[90vh] overflow-y-auto">
+   530→   530→        <DialogHeader>
+   531→   531→          <DialogTitle className="text-xl flex items-center gap-2">
+   532→   532→            <GraduationCap className="h-5 w-5 text-emerald-600" />
+   533→   533→            Create Account
+   534→   534→          </DialogTitle>
+   535→   535→          <DialogDescription>Join StudentMarket SA</DialogDescription>
+   536→   536→        </DialogHeader>
+   537→   537→
+   538→   538→        <form onSubmit={handleSignup} className="space-y-4 mt-2">
+   539→   539→          {error && (
+   540→   540→            <div className="p-3 bg-red-50 border border-red-200 rounded-lg text-sm text-red-600">{error}</div>
+   541→   541→          )}
+   542→   542→
+   543→   543→          <div>
+   544→   544→            <Label className="text-sm font-medium">Full Name *</Label>
+   545→   545→            <Input placeholder="Sipho Mkhize" value={name} onChange={(e) => setName(e.target.value)} className="mt-1.5" required minLength={2} />
+   546→   546→          </div>
+   547→   547→
+   548→   548→          <div>
+   549→   549→            <Label className="text-sm font-medium">Student Email *</Label>
+   550→   550→            <div className="relative mt-1.5">
+   551→   551→              <Mail className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400" />
+   552→   552→              <Input type="email" placeholder="you@uct.ac.za" value={email} onChange={(e) => setEmail(e.target.value)} className="pl-10" required />
+   553→   553→            </div>
+   554→   554→            <p className="text-xs text-gray-400 mt-1">Use your .ac.za email for automatic verification</p>
+   555→   555→          </div>
+   556→   556→
+   557→   557→          <div>
+   558→   558→            <Label className="text-sm font-medium">University</Label>
+   559→   559→            <Select value={university} onValueChange={setUniversity}>
+   560→   560→              <SelectTrigger className="mt-1.5"><SelectValue placeholder="Select university" /></SelectTrigger>
+   561→   561→              <SelectContent>
+   562→   562→                {SA_UNIVERSITIES.map((u) => <SelectItem key={u} value={u}>{u}</SelectItem>)}
+   563→   563→              </SelectContent>
+   564→   564→            </Select>
+   565→   565→          </div>
+   566→   566→
+   567→   567→          <div>
+   568→   568→            <Label className="text-sm font-medium">Password *</Label>
+   569→   569→            <div className="relative mt-1.5">
+   570→   570→              <Lock className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400" />
+   571→   571→              <Input type={showPassword ? 'text' : 'password'} placeholder="Min 8 chars, 1 uppercase, 1 number" value={password} onChange={(e) => setPassword(e.target.value)} className="pl-10 pr-10" required />
+   572→   572→              <button type="button" onClick={() => setShowPassword(!showPassword)} className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600">
+   573→   573→                {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+   574→   574→              </button>
+   575→   575→            </div>
+   576→   576→            {password && (
+   577→   577→              <div className="mt-2 flex items-center gap-2">
+   578→   578→                <div className="flex-1 flex gap-1">
+   579→   579→                  {[1, 2, 3, 4].map((i) => (
+   580→   580→                    <div key={i} className={`h-1 flex-1 rounded-full ${i <= passwordStrength.score ? passwordStrength.color : 'bg-gray-200'}`} />
+   581→   581→                  ))}
+   582→   582→                </div>
+   583→   583→                <span className="text-xs text-gray-500">{passwordStrength.label}</span>
+   584→   584→              </div>
+   585→   585→            )}
+   586→   586→          </div>
+   587→   587→
+   588→   588→          <div>
+   589→   589→            <Label className="text-sm font-medium">Confirm Password *</Label>
+   590→   590→            <div className="relative mt-1.5">
+   591→   591→              <Lock className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400" />
+   592→   592→              <Input type={showPassword ? 'text' : 'password'} placeholder="Re-enter password" value={confirmPassword} onChange={(e) => setConfirmPassword(e.target.value)} className="pl-10" required />
+   593→   593→            </div>
+   594→   594→          </div>
+   595→   595→
+   596→   596→          <Button type="submit" disabled={isLoading} className="w-full bg-emerald-600 hover:bg-emerald-700 rounded-xl h-11 font-medium">
+   597→   597→            {isLoading ? 'Creating account...' : 'Create Account'}
+   598→   598→          </Button>
+   599→   599→
+   600→   600→          <div className="text-center text-sm">
+   601→   601→            <span className="text-gray-500">Already have an account? </span>
+   602→   602→            <button type="button" onClick={() => setViewMode('login')} className="text-emerald-600 font-semibold hover:underline">
+   603→   603→              Sign In
+   604→   604→            </button>
+   605→   605→          </div>
+   606→   606→        </form>
+   607→   607→      </DialogContent>
+   608→   608→    </Dialog>
+   609→   609→  )
+   610→   610→}
+   611→   611→
+   612→   612→// ─── Header ───
+   613→   613→function Header() {
+   614→   614→  const { searchQuery, setSearchQuery, setViewMode, currentUser, setCurrentUser, logout, setShowCreateStory } = useMarketplaceStore()
+   615→   615→  const [showUserMenu, setShowUserMenu] = useState(false)
+   616→   616→
+   617→   617→  return (
+   618→   618→    <header className="sticky top-0 z-50 bg-white border-b border-gray-200 shadow-sm">
+   619→   619→      <div className="max-w-7xl mx-auto px-4 py-3">
+   620→   620→        <div className="flex items-center gap-3">
+   621→   621→          <div className="flex items-center gap-2 shrink-0">
+   622→   622→            <div className="w-9 h-9 bg-emerald-600 rounded-lg flex items-center justify-center">
+   623→   623→              <Tag className="h-5 w-5 text-white" />
+   624→   624→            </div>
+   625→   625→            <div className="hidden sm:block">
+   626→   626→              <h1 className="text-lg font-bold text-gray-900 leading-tight">StudentMarket</h1>
+   627→   627→              <p className="text-[10px] text-emerald-600 font-medium leading-tight">South Africa</p>
+   628→   628→            </div>
+   629→   629→          </div>
+   630→   630→
+   631→   631→          <div className="flex-1 max-w-2xl">
+   632→   632→            <div className="relative">
+   633→   633→              <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400" />
+   634→   634→              <Input
+   635→   635→                placeholder="Search textbooks, electronics, accommodation..."
+   636→   636→                value={searchQuery}
+   637→   637→                onChange={(e) => setSearchQuery(e.target.value)}
+   638→   638→                className="pl-10 pr-4 h-10 bg-gray-50 border-gray-200 rounded-full text-sm focus:bg-white focus:border-emerald-400 focus:ring-emerald-400"
+   639→   639→              />
+   640→   640→              {searchQuery && (
+   641→   641→                <button onClick={() => setSearchQuery('')} className="absolute right-3 top-1/2 -translate-y-1/2">
+   642→   642→                  <X className="h-4 w-4 text-gray-400 hover:text-gray-600" />
+   643→   643→                </button>
+   644→   644→              )}
+   645→   645→            </div>
+   646→   646→          </div>
+   647→   647→
+   648→   648→          <div className="flex items-center gap-2">
+   649→   649→            {currentUser ? (
+   650→   650→              <>
+   651→   651→                {currentUser.verified && (
+   652→   652→                  <Badge className="bg-emerald-100 text-emerald-700 border-emerald-200 gap-1 text-xs">
+   653→   653→                    <Shield className="h-3 w-3" /> Verified
+   654→   654→                  </Badge>
+   655→   655→                )}
+   656→   656→                <div className="relative">
+   657→   657→                  <button
+   658→   658→                    onClick={() => setShowUserMenu(!showUserMenu)}
+   659→   659→                    className="flex items-center gap-2 px-2 py-1.5 rounded-full hover:bg-gray-50 transition-colors"
+   660→   660→                  >
+   661→   661→                    <Avatar className="h-7 w-7">
+   662→   662→                      <AvatarImage src={currentUser.avatar || ''} />
+   663→   663→                      <AvatarFallback className="text-[10px]">{currentUser.name.charAt(0)}</AvatarFallback>
+   664→   664→                    </Avatar>
+   665→   665→                    <span className="hidden sm:inline text-sm font-medium text-gray-700">{currentUser.name.split(' ')[0]}</span>
+   666→   666→                  </button>
+   667→   667→
+   668→   668→                  {showUserMenu && (
+   669→   669→                    <div className="absolute right-0 top-full mt-1 w-56 bg-white rounded-xl shadow-lg border border-gray-200 py-2 z-50">
+   670→   670→                      <div className="px-4 py-2 border-b border-gray-100">
+   671→   671→                        <p className="text-sm font-semibold">{currentUser.name}</p>
+   672→   672→                        <p className="text-xs text-gray-500">{currentUser.email}</p>
+   673→   673→                        {currentUser.university && <p className="text-xs text-emerald-600">{currentUser.university}</p>}
+   674→   674→                      </div>
+   675→   675→                      <button
+   676→   676→                        onClick={() => { setShowCreateStory(true); setShowUserMenu(false) }}
+   677→   677→                        className="w-full px-4 py-2.5 text-sm text-left hover:bg-gray-50 flex items-center gap-2"
+   678→   678→                      >
+   679→   679→                        <Camera className="h-4 w-4 text-gray-500" /> Create Story
+   680→   680→                      </button>
+   681→   681→                      <button
+   682→   682→                        onClick={() => setViewMode('create')}
+   683→   683→                        className="w-full px-4 py-2.5 text-sm text-left hover:bg-gray-50 flex items-center gap-2"
+   684→   684→                      >
+   685→   685→                        <Plus className="h-4 w-4 text-gray-500" /> New Listing
+   686→   686→                      </button>
+   687→   687→                      <div className="border-t border-gray-100 mt-1 pt-1">
+   688→   688→                        <button
+   689→   689→                          onClick={() => { logout(); setShowUserMenu(false); toast.success('Logged out') }}
+   690→   690→                          className="w-full px-4 py-2.5 text-sm text-left hover:bg-red-50 text-red-600 flex items-center gap-2"
+   691→   691→                        >
+   692→   692→                          <LogOut className="h-4 w-4" /> Sign Out
+   693→   693→                        </button>
+   694→   694→                      </div>
+   695→   695→                    </div>
+   696→   696→                  )}
+   697→   697→                </div>
+   698→   698→              </>
+   699→   699→            ) : (
+   700→   700→              <Button onClick={() => setViewMode('login')} variant="outline" className="rounded-full gap-1.5 text-sm font-medium border-gray-200">
+   701→   701→                <User className="h-4 w-4" />
+   702→   702→                <span className="hidden sm:inline">Sign In</span>
+   703→   703→              </Button>
+   704→   704→            )}
+   705→   705→
+   706→   706→            <Button
+   707→   707→              onClick={() => currentUser ? setViewMode('create') : setViewMode('signup')}
+   708→   708→              className="bg-emerald-600 hover:bg-emerald-700 rounded-full gap-1.5 text-sm font-medium"
+   709→   709→            >
+   710→   710→              <Plus className="h-4 w-4" />
+   711→   711→              <span className="hidden sm:inline">Sell</span>
+   712→   712→            </Button>
+   713→   713→          </div>
+   714→   714→        </div>
+   715→   715→      </div>
+   716→   716→      {showUserMenu && <div className="fixed inset-0 z-40" onClick={() => setShowUserMenu(false)} />}
+   717→   717→    </header>
+   718→   718→  )
+   719→   719→}
+   720→   720→
+   721→   721→// ─── Category Bar ───
+   722→   722→function CategoryBar({ categories }: { categories: Category[] }) {
+   723→   723→  const { selectedCategory, setSelectedCategory } = useMarketplaceStore()
+   724→   724→  return (
+   725→   725→    <div className="border-b border-gray-100 bg-white">
+   726→   726→      <div className="max-w-7xl mx-auto px-4">
+   727→   727→        <div className="flex gap-1 py-2 overflow-x-auto no-scrollbar">
+   728→   728→          <button
+   729→   729→            onClick={() => setSelectedCategory('')}
+   730→   730→            className={`flex items-center gap-2 px-4 py-2 rounded-full text-sm font-medium whitespace-nowrap transition-all ${!selectedCategory ? 'bg-emerald-600 text-white shadow-md shadow-emerald-200' : 'bg-gray-100 text-gray-600 hover:bg-gray-200'}`}
+   731→   731→          >
+   732→   732→            <LayoutGrid className="h-4 w-4" /> All
+   733→   733→          </button>
+   734→   734→          {categories.map((cat) => (
+   735→   735→            <button
+   736→   736→              key={cat.id}
+   737→   737→              onClick={() => setSelectedCategory(selectedCategory === cat.id ? '' : cat.id)}
+   738→   738→              className={`flex items-center gap-2 px-4 py-2 rounded-full text-sm font-medium whitespace-nowrap transition-all ${selectedCategory === cat.id ? 'text-white shadow-md' : 'bg-gray-100 text-gray-600 hover:bg-gray-200'}`}
+   739→   739→              style={selectedCategory === cat.id ? { backgroundColor: cat.color } : undefined}
+   740→   740→            >
+   741→   741→              {ICON_MAP[cat.icon]}
+   742→   742→              <span className="hidden sm:inline">{cat.name}</span>
+   743→   743→              {cat._count.listings > 0 && (
+   744→   744→                <span className={`text-xs px-1.5 py-0.5 rounded-full ${selectedCategory === cat.id ? 'bg-white/20' : 'bg-gray-200'}`}>
+   745→   745→                  {cat._count.listings}
+   746→   746→                </span>
+   747→   747→              )}
+   748→   748→            </button>
+   749→   749→          ))}
+   750→   750→        </div>
+   751→   751→      </div>
+   752→   752→    </div>
+   753→   753→  )
+   754→   754→}
+   755→   755→
+   756→   756→// ─── Filter Bar ───
+   757→   757→function FilterBar({ universities }: { universities: University[] }) {
+   758→   758→  const { selectedUniversity, setSelectedUniversity, selectedCondition, setSelectedCondition, sortBy, setSortBy, resetFilters } = useMarketplaceStore()
+   759→   759→  const [showFilters, setShowFilters] = useState(false)
+   760→   760→  return (
+   761→   761→    <div className="bg-gray-50 border-b border-gray-100">
+   762→   762→      <div className="max-w-7xl mx-auto px-4 py-3">
+   763→   763→        <div className="flex items-center gap-3 flex-wrap">
+   764→   764→          <button onClick={() => setShowFilters(!showFilters)} className="flex items-center gap-2 px-3 py-2 bg-white border border-gray-200 rounded-lg text-sm font-medium text-gray-700 hover:bg-gray-50 transition-colors">
+   765→   765→            <SlidersHorizontal className="h-4 w-4" /> Filters
+   766→   766→            {(selectedUniversity || selectedCondition) && <span className="w-2 h-2 bg-emerald-500 rounded-full" />}
+   767→   767→          </button>
+   768→   768→          <AnimatePresence>
+   769→   769→            {showFilters && (
+   770→   770→              <motion.div initial={{ opacity: 0, height: 0 }} animate={{ opacity: 1, height: 'auto' }} exit={{ opacity: 0, height: 0 }} className="flex items-center gap-2 flex-wrap">
+   771→   771→                <Select value={selectedUniversity || 'all'} onValueChange={(v) => setSelectedUniversity(v === 'all' ? '' : v)}>
+   772→   772→                  <SelectTrigger className="w-auto h-9 gap-1.5 text-sm border-gray-200 bg-white">
+   773→   773→                    <GraduationCap className="h-3.5 w-3.5 text-gray-500" /><SelectValue placeholder="University" />
+   774→   774→                  </SelectTrigger>
+   775→   775→                  <SelectContent>
+   776→   776→                    <SelectItem value="all">All Universities</SelectItem>
+   777→   777→                    {universities.map((uni) => <SelectItem key={uni.id} value={uni.id}>{uni.shortName} ({uni._count.listings})</SelectItem>)}
+   778→   778→                  </SelectContent>
+   779→   779→                </Select>
+   780→   780→                <Select value={selectedCondition || 'all'} onValueChange={(v) => setSelectedCondition(v === 'all' ? '' : v)}>
+   781→   781→                  <SelectTrigger className="w-auto h-9 gap-1.5 text-sm border-gray-200 bg-white">
+   782→   782→                    <CheckCircle2 className="h-3.5 w-3.5 text-gray-500" /><SelectValue placeholder="Condition" />
+   783→   783→                  </SelectTrigger>
+   784→   784→                  <SelectContent>
+   785→   785→                    {CONDITIONS.map((c) => <SelectItem key={c} value={c.toLowerCase().includes('all') ? 'all' : c}>{c}</SelectItem>)}
+   786→   786→                  </SelectContent>
+   787→   787→                </Select>
+   788→   788→                {(selectedUniversity || selectedCondition) && (
+   789→   789→                  <Button variant="ghost" size="sm" onClick={resetFilters} className="h-9 text-xs text-red-500 hover:text-red-600 hover:bg-red-50">
+   790→   790→                    <X className="h-3 w-3 mr-1" /> Clear
+   791→   791→                  </Button>
+   792→   792→                )}
+   793→   793→              </motion.div>
+   794→   794→            )}
+   795→   795→          </AnimatePresence>
+   796→   796→          <div className="ml-auto">
+   797→   797→            <Select value={sortBy} onValueChange={setSortBy}>
+   798→   798→              <SelectTrigger className="w-auto h-9 gap-1.5 text-sm border-gray-200 bg-white">
+   799→   799→                <ArrowUpDown className="h-3.5 w-3.5 text-gray-500" /><SelectValue />
+   800→   800→              </SelectTrigger>
+   801→   801→              <SelectContent>
+   802→   802→                <SelectItem value="newest">Newest first</SelectItem>
+   803→   803→                <SelectItem value="price_low">Price: Low to High</SelectItem>
+   804→   804→                <SelectItem value="price_high">Price: High to Low</SelectItem>
+   805→   805→              </SelectContent>
+   806→   806→            </Select>
+   807→   807→          </div>
+   808→   808→        </div>
+   809→   809→      </div>
+   810→   810→    </div>
+   811→   811→  )
+   812→   812→}
+   813→   813→
+   814→   814→// ─── Listing Card ───
+   815→   815→function ListingCard({ listing, onClick }: { listing: ListingDetail; onClick: () => void }) {
+   816→   816→  const images = JSON.parse(listing.images || '[]') as string[]
+   817→   817→  return (
+   818→   818→    <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} whileHover={{ y: -2 }} transition={{ duration: 0.2 }}>
+   819→   819→      <Card className="overflow-hidden cursor-pointer group border-gray-200 hover:shadow-lg hover:border-emerald-200 transition-all duration-300" onClick={onClick}>
+   820→   820→        <div className="relative aspect-square bg-gray-100 overflow-hidden">
+   821→   821→          {images[0] ? (
+   822→   822→            <img src={images[0]} alt={listing.title} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300" loading="lazy" />
+   823→   823→          ) : (
+   824→   824→            <div className="w-full h-full flex items-center justify-center bg-gradient-to-br from-gray-50 to-gray-100">
+   825→   825→              <div className="text-center p-4">{ICON_MAP[listing.category.icon]}<p className="text-xs text-gray-400 mt-2">{listing.category.name}</p></div>
+   826→   826→            </div>
+   827→   827→          )}
+   828→   828→          <Badge className="absolute top-2 left-2 text-[10px] font-medium" style={{ backgroundColor: listing.category.color + 'DD', color: 'white' }}>{listing.condition}</Badge>
+   829→   829→          <div className="absolute bottom-2 left-2">
+   830→   830→            <span className={`text-lg font-bold px-2.5 py-1 rounded-lg ${listing.price === 0 ? 'bg-green-500 text-white' : 'bg-white/95 text-gray-900 backdrop-blur-sm'}`}>{formatPrice(listing.price)}</span>
+   831→   831→          </div>
+   832→   832→          <button className="absolute top-2 right-2 w-8 h-8 bg-white/80 backdrop-blur-sm rounded-full flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity" onClick={(e) => e.stopPropagation()}>
+   833→   833→            <Heart className="h-4 w-4 text-gray-500" />
+   834→   834→          </button>
+   835→   835→        </div>
+   836→   836→        <CardContent className="p-3">
+   837→   837→          <h3 className="font-semibold text-sm text-gray-900 line-clamp-2 leading-snug mb-1.5">{listing.title}</h3>
+   838→   838→          <div className="flex items-center gap-1.5 text-xs text-gray-500 mb-2">
+   839→   839→            <MapPin className="h-3 w-3 shrink-0" /><span className="truncate">{listing.location}</span>
+   840→   840→          </div>
+   841→   841→          <div className="flex items-center justify-between">
+   842→   842→            <div className="flex items-center gap-1.5">
+   843→   843→              <Avatar className="h-5 w-5"><AvatarImage src={listing.seller.avatar} /><AvatarFallback className="text-[8px]">{listing.seller.name.charAt(0)}</AvatarFallback></Avatar>
+   844→   844→              <span className="text-xs text-gray-500 truncate max-w-[80px]">{listing.seller.name.split(' ')[0]}</span>
+   845→   845→            </div>
+   846→   846→            <div className="flex items-center gap-2 text-xs text-gray-400">
+   847→   847→              <span className="flex items-center gap-0.5"><Eye className="h-3 w-3" />{listing.views}</span>
+   848→   848→              <span>{timeAgo(listing.createdAt)}</span>
+   849→   849→            </div>
+   850→   850→          </div>
+   851→   851→        </CardContent>
+   852→   852→      </Card>
+   853→   853→    </motion.div>
+   854→   854→  )
+   855→   855→}
+   856→   856→
+   857→   857→// ─── Listing Grid ───
+   858→   858→function ListingGrid({ listings, onSelectListing }: { listings: ListingDetail[]; onSelectListing: (l: ListingDetail) => void }) {
+   859→   859→  if (listings.length === 0) return (
+   860→   860→    <div className="flex flex-col items-center justify-center py-20 px-4">
+   861→   861→      <div className="w-20 h-20 bg-gray-100 rounded-full flex items-center justify-center mb-4"><Search className="h-8 w-8 text-gray-300" /></div>
+   862→   862→      <h3 className="text-lg font-semibold text-gray-700 mb-1">No listings found</h3>
+   863→   863→      <p className="text-sm text-gray-400 text-center max-w-sm">Try adjusting your filters or search terms.</p>
+   864→   864→    </div>
+   865→   865→  )
+   866→   866→  return (
+   867→   867→    <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-3 p-4">
+   868→   868→      {listings.map((listing) => <ListingCard key={listing.id} listing={listing} onClick={() => onSelectListing(listing)} />)}
+   869→   869→    </div>
+   870→   870→  )
+   871→   871→}
+   872→   872→
+   873→   873→// ─── Listing Detail Dialog ───
+   874→   874→function ListingDetailDialog() {
+   875→   875→  const { selectedListing, setSelectedListing, currentUserId, currentUser } = useMarketplaceStore()
+   876→   876→  const [messages, setMessages] = useState<Message[]>([])
+   877→   877→  const [newMessage, setNewMessage] = useState('')
+   878→   878→  const [imageIndex, setImageIndex] = useState(0)
+   879→   879→  const [liked, setLiked] = useState(false)
+   880→   880→  const images = selectedListing ? JSON.parse(selectedListing.images || '[]') as string[] : []
+   881→   881→  const isOpen = !!selectedListing
+   882→   882→  const userId = currentUser?.id || currentUserId || 'user-1'
+   883→   883→
+   884→   884→  useEffect(() => {
+   885→   885→    if (selectedListing) {
+   886→   886→      fetch(`/api/listings/${selectedListing.id}/messages`).then((r) => r.json()).then(setMessages).catch(() => {})
+   887→   887→      setImageIndex(0)
+   888→   888→      setLiked(false)
+   889→   889→    }
+   890→   890→  }, [selectedListing])
+   891→   891→
+   892→   892→  const handleSendMessage = async () => {
+   893→   893→    if (!selectedListing || !newMessage.trim()) return
+   894→   894→    const msg = newMessage.trim()
+   895→   895→    setNewMessage('')
+   896→   896→    try {
+   897→   897→      const res = await fetch(`/api/listings/${selectedListing.id}/messages`, {
+   898→   898→        method: 'POST',
+   899→   899→        headers: { 'Content-Type': 'application/json' },
+   900→   900→        body: JSON.stringify({ content: msg, senderId: userId, receiverId: selectedListing.sellerId }),
+   901→   901→      })
+   902→   902→      if (res.ok) {
+   903→   903→        const newMsg = await res.json()
+   904→   904→        setMessages((prev) => [...prev, newMsg])
+   905→   905→      }
+   906→   906→    } catch { toast.error('Failed to send message') }
+   907→   907→  }
+   908→   908→
+   909→   909→  const isOwner = userId === selectedListing?.sellerId
+   910→   910→
+   911→   911→  if (!selectedListing) return null
+   912→   912→
+   913→   913→  return (
+   914→   914→    <Dialog open={isOpen} onOpenChange={(open) => !open && setSelectedListing(null)}>
+   915→   915→      <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto p-0 gap-0">
+   916→   916→        <div className="md:flex">
+   917→   917→          <div className="md:w-1/2 bg-gray-100">
+   918→   918→            <div className="relative aspect-square">
+   919→   919→              {images[0] ? (
+   920→   920→                <img src={images[imageIndex]} alt={selectedListing.title} className="w-full h-full object-cover" />
+   921→   921→              ) : (
+   922→   922→                <div className="w-full h-full flex items-center justify-center">
+   923→   923→                  <div className="text-center">{ICON_MAP[selectedListing.category.icon] && <div className="text-6xl text-gray-300 mb-3">{ICON_MAP[selectedListing.category.icon]}</div>}<p className="text-sm text-gray-400">{selectedListing.category.name}</p></div>
+   924→   924→                </div>
+   925→   925→              )}
+   926→   926→              {images.length > 1 && (<>
+   927→   927→                <button onClick={() => setImageIndex((p) => (p - 1 + images.length) % images.length)} className="absolute left-2 top-1/2 -translate-y-1/2 w-8 h-8 bg-white/80 rounded-full flex items-center justify-center hover:bg-white"><ChevronLeft className="h-4 w-4" /></button>
+   928→   928→                <button onClick={() => setImageIndex((p) => (p + 1) % images.length)} className="absolute right-2 top-1/2 -translate-y-1/2 w-8 h-8 bg-white/80 rounded-full flex items-center justify-center hover:bg-white"><ChevronRight className="h-4 w-4" /></button>
+   929→   929→                <div className="absolute bottom-3 left-1/2 -translate-x-1/2 flex gap-1">{images.map((_, i) => <button key={i} onClick={() => setImageIndex(i)} className={`w-2 h-2 rounded-full transition-colors ${i === imageIndex ? 'bg-white' : 'bg-white/50'}`} />)}</div>
+   930→   930→              </>)}
+   931→   931→            </div>
+   932→   932→          </div>
+   933→   933→          <div className="md:w-1/2 p-5">
+   934→   934→            <DialogHeader className="space-y-2 mb-4">
+   935→   935→              <div className="flex items-start justify-between">
+   936→   936→                <Badge style={{ backgroundColor: selectedListing.category.color, color: 'white' }} className="text-xs">{ICON_MAP_SM[selectedListing.category.icon]}<span className="ml-1">{selectedListing.category.name}</span></Badge>
+   937→   937→                <div className="flex items-center gap-1">
+   938→   938→                  <button onClick={() => setLiked(!liked)} className="p-2 rounded-full hover:bg-gray-100 transition-colors"><Heart className={`h-5 w-5 ${liked ? 'fill-red-500 text-red-500' : 'text-gray-400'}`} /></button>
+   939→   939→                  <button className="p-2 rounded-full hover:bg-gray-100 transition-colors"><Share2 className="h-5 w-5 text-gray-400" /></button>
+   940→   940→                </div>
+   941→   941→              </div>
+   942→   942→              <DialogTitle className="text-xl leading-tight">{selectedListing.title}</DialogTitle>
+   943→   943→              <div className="flex items-baseline gap-2">
+   944→   944→                <span className={`text-2xl font-bold ${selectedListing.price === 0 ? 'text-green-600' : 'text-gray-900'}`}>{formatPrice(selectedListing.price)}</span>
+   945→   945→                {selectedListing.price > 0 && selectedListing.negotiable && <span className="text-sm text-emerald-600 font-medium">Negotiable</span>}
+   946→   946→              </div>
+   947→   947→              <DialogDescription className="sr-only">View listing details</DialogDescription>
+   948→   948→            </DialogHeader>
+   949→   949→            <div className="space-y-4 mb-5">
+   950→   950→              <div className="grid grid-cols-2 gap-3">
+   951→   951→                {[
+   952→   952→                  { icon: <CheckCircle2 className="h-4 w-4 text-gray-400" />, label: 'Condition', value: selectedListing.condition },
+   953→   953→                  { icon: <MapPin className="h-4 w-4 text-gray-400" />, label: 'Location', value: selectedListing.location },
+   954→   954→                  { icon: <Clock className="h-4 w-4 text-gray-400" />, label: 'Posted', value: timeAgo(selectedListing.createdAt) },
+   955→   955→                  { icon: <Eye className="h-4 w-4 text-gray-400" />, label: 'Views', value: `${selectedListing.views} views` },
+   956→   956→                ].map((item) => (
+   957→   957→                  <div key={item.label} className="flex items-center gap-2 text-sm">
+   958→   958→                    {item.icon}<div><p className="text-gray-400 text-xs">{item.label}</p><p className="font-medium">{item.value}</p></div>
+   959→   959→                  </div>
+   960→   960→                ))}
+   961→   961→              </div>
+   962→   962→              {selectedListing.university && (
+   963→   963→                <div className="flex items-center gap-2 text-sm bg-emerald-50 p-2.5 rounded-lg">
+   964→   964→                  <GraduationCap className="h-4 w-4 text-emerald-600" /><span className="font-medium text-emerald-700">{selectedListing.university.name}</span>
+   965→   965→                  {selectedListing.campus && <span className="text-emerald-500">• {selectedListing.campus}</span>}
+   966→   966→                </div>
+   967→   967→              )}
+   968→   968→              <Separator />
+   969→   969→              <div><h4 className="font-semibold text-sm mb-1.5">Description</h4><p className="text-sm text-gray-600 leading-relaxed whitespace-pre-wrap">{selectedListing.description}</p></div>
+   970→   970→              <Separator />
+   971→   971→              <div>
+   972→   972→                <h4 className="font-semibold text-sm mb-2">Seller</h4>
+   973→   973→                <div className="flex items-center gap-3 p-3 bg-gray-50 rounded-xl">
+   974→   974→                  <Avatar className="h-12 w-12"><AvatarImage src={selectedListing.seller.avatar} /><AvatarFallback>{selectedListing.seller.name.charAt(0)}</AvatarFallback></Avatar>
+   975→   975→                  <div className="flex-1 min-w-0">
+   976→   976→                    <div className="flex items-center gap-1.5"><p className="font-semibold text-sm">{selectedListing.seller.name}</p><Shield className="h-3.5 w-3.5 text-emerald-500" /></div>
+   977→   977→                    {selectedListing.seller.university && <p className="text-xs text-gray-500">{selectedListing.seller.university}</p>}
+   978→   978→                    {selectedListing.seller.bio && <p className="text-xs text-gray-400 truncate mt-0.5">{selectedListing.seller.bio}</p>}
+   979→   979→                  </div>
+   980→   980→                  <Star className="h-4 w-4 text-yellow-400" /><span className="text-xs font-medium text-gray-600">4.8</span>
+   981→   981→                </div>
+   982→   982→              </div>
+   983→   983→            </div>
+   984→   984→            {!isOwner && (<>
+   985→   985→              <Separator />
+   986→   986→              <div className="mt-4">
+   987→   987→                <h4 className="font-semibold text-sm mb-3">Message Seller</h4>
+   988→   988→                {messages.length > 0 && (
+   989→   989→                  <div className="max-h-48 overflow-y-auto space-y-2 mb-3 p-3 bg-gray-50 rounded-xl">
+   990→   990→                    {messages.map((msg) => (
+   991→   991→                      <div key={msg.id} className={`flex gap-2 ${msg.senderId === userId ? 'flex-row-reverse' : ''}`}>
+   992→   992→                        <Avatar className="h-6 w-6 shrink-0"><AvatarImage src={msg.sender.avatar} /><AvatarFallback className="text-[8px]">{msg.sender.name.charAt(0)}</AvatarFallback></Avatar>
+   993→   993→                        <div className={`max-w-[80%] px-3 py-1.5 rounded-xl text-sm ${msg.senderId === userId ? 'bg-emerald-600 text-white' : 'bg-white border border-gray-200 text-gray-700'}`}>
+   994→   994→                          <p>{msg.content}</p><p className={`text-[10px] mt-0.5 ${msg.senderId === userId ? 'text-emerald-200' : 'text-gray-400'}`}>{timeAgo(msg.createdAt)}</p>
+   995→   995→                        </div>
+   996→   996→                      </div>
+   997→   997→                    ))}
+   998→   998→                  </div>
+   999→   999→                )}
+  1000→  1000→                <div className="flex gap-2">
+  1001→  1001→                  <Input placeholder="Type a message..." value={newMessage} onChange={(e) => setNewMessage(e.target.value)} onKeyDown={(e) => e.key === 'Enter' && handleSendMessage()} className="flex-1 h-10 rounded-xl border-gray-200" />
+  1002→  1002→                  <Button onClick={handleSendMessage} disabled={!newMessage.trim()} className="h-10 w-10 p-0 rounded-xl bg-emerald-600 hover:bg-emerald-700"><Send className="h-4 w-4" /></Button>
+  1003→  1003→                </div>
+  1004→  1004→              </div>
+  1005→  1005→            </>)}
+  1006→  1006→            {isOwner && <div className="mt-4 p-3 bg-amber-50 rounded-xl text-sm text-amber-700 flex items-center gap-2"><Shield className="h-4 w-4" /> This is your listing</div>}
+  1007→  1007→          </div>
+  1008→  1008→        </div>
+  1009→  1009→      </DialogContent>
+  1010→  1010→    </Dialog>
+  1011→  1011→  )
+  1012→  1012→}
+  1013→  1013→
+  1014→  1014→// ─── Create Listing Dialog ───
+  1015→  1015→function CreateListingDialog({ categories, universities, onCreated }: { categories: Category[]; universities: University[]; onCreated: () => void }) {
+  1016→  1016→  const { viewMode, setViewMode, currentUser, currentUserId } = useMarketplaceStore()
+  1017→  1017→  const [title, setTitle] = useState('')
+  1018→  1018→  const [description, setDescription] = useState('')
+  1019→  1019→  const [price, setPrice] = useState('')
+  1020→  1020→  const [categoryId, setCategoryId] = useState('')
+  1021→  1021→  const [universityId, setUniversityId] = useState('')
+  1022→  1022→  const [campus, setCampus] = useState('')
+  1023→  1023→  const [location, setLocation] = useState('')
+  1024→  1024→  const [condition, setCondition] = useState('Used')
+  1025→  1025→  const [negotiable, setNegotiable] = useState(true)
+  1026→  1026→  const [imageUrls, setImageUrls] = useState('')
+  1027→  1027→  const [isSubmitting, setIsSubmitting] = useState(false)
+  1028→  1028→  const userId = currentUser?.id || currentUserId || 'user-1'
+  1029→  1029→
+  1030→  1030→  const handleSubmit = async (e: React.FormEvent) => {
+  1031→  1031→    e.preventDefault()
+  1032→  1032→    if (!title || !description || !categoryId || !location) { toast.error('Please fill in all required fields'); return }
+  1033→  1033→    setIsSubmitting(true)
+  1034→  1034→    try {
+  1035→  1035→      const images = imageUrls.split('\n').map((u) => u.trim()).filter(Boolean)
+  1036→  1036→      const res = await fetch('/api/listings', {
+  1037→  1037→        method: 'POST',
+  1038→  1038→        headers: { 'Content-Type': 'application/json' },
+  1039→  1039→        body: JSON.stringify({ title, description, price: parseFloat(price) || 0, categoryId, universityId: universityId || null, campus, location, condition, negotiable, images, sellerId: userId }),
+  1040→  1040→      })
+  1041→  1041→      if (res.ok) { toast.success('Listing created!'); setViewMode('browse'); onCreated() } else { toast.error('Failed to create listing') }
+  1042→  1042→    } catch { toast.error('Failed to create listing') } finally { setIsSubmitting(false) }
+  1043→  1043→  }
+  1044→  1044→
+  1045→  1045→  return (
+  1046→  1046→    <Dialog open={viewMode === 'create'} onOpenChange={(open) => !open && setViewMode('browse')}>
+  1047→  1047→      <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
+  1048→  1048→        <DialogHeader>
+  1049→  1049→          <DialogTitle className="text-xl flex items-center gap-2"><div className="w-8 h-8 bg-emerald-100 rounded-lg flex items-center justify-center"><Plus className="h-4 w-4 text-emerald-600" /></div>Create New Listing</DialogTitle>
+  1050→  1050→          <DialogDescription className="sr-only">Create a new listing</DialogDescription>
+  1051→  1051→        </DialogHeader>
+  1052→  1052→        <form onSubmit={handleSubmit} className="space-y-5 mt-4">
+  1053→  1053→          <div><Label className="text-sm font-medium">Photos (one URL per line)</Label><Textarea placeholder="https://example.com/photo.jpg" value={imageUrls} onChange={(e) => setImageUrls(e.target.value)} className="mt-1.5 min-h-[80px] text-sm" /></div>
+  1054→  1054→          <div><Label className="text-sm font-medium">Title *</Label><Input placeholder="What are you selling?" value={title} onChange={(e) => setTitle(e.target.value)} className="mt-1.5" required /></div>
+  1055→  1055→          <div><Label className="text-sm font-medium">Description *</Label><Textarea placeholder="Describe your item..." value={description} onChange={(e) => setDescription(e.target.value)} className="mt-1.5 min-h-[100px]" required /></div>
+  1056→  1056→          <div className="grid grid-cols-2 gap-3">
+  1057→  1057→            <div><Label className="text-sm font-medium">Price (ZAR)</Label><div className="relative mt-1.5"><span className="absolute left-3 top-1/2 -translate-y-1/2 text-sm text-gray-400 font-medium">R</span><Input type="number" placeholder="0" value={price} onChange={(e) => setPrice(e.target.value)} className="pl-8" min="0" /></div><label className="flex items-center gap-2 mt-2 cursor-pointer"><input type="checkbox" checked={negotiable} onChange={(e) => setNegotiable(e.target.checked)} className="rounded border-gray-300 text-emerald-600 focus:ring-emerald-500" /><span className="text-xs text-gray-600">Negotiable</span></label></div>
+  1058→  1058→            <div><Label className="text-sm font-medium">Condition</Label><Select value={condition} onValueChange={setCondition}><SelectTrigger className="mt-1.5"><SelectValue /></SelectTrigger><SelectContent><SelectItem value="New">New</SelectItem><SelectItem value="Like New">Like New</SelectItem><SelectItem value="Good">Good</SelectItem><SelectItem value="Fair">Fair</SelectItem><SelectItem value="Used">Used</SelectItem></SelectContent></Select></div>
+  1059→  1059→          </div>
+  1060→  1060→          <div><Label className="text-sm font-medium">Category *</Label><Select value={categoryId} onValueChange={setCategoryId}><SelectTrigger className="mt-1.5"><SelectValue placeholder="Select category" /></SelectTrigger><SelectContent>{categories.map((cat) => <SelectItem key={cat.id} value={cat.id}><div className="flex items-center gap-2">{ICON_MAP_SM[cat.icon]}{cat.name}</div></SelectItem>)}</SelectContent></Select></div>
+  1061→  1061→          <div className="grid grid-cols-2 gap-3">
+  1062→  1062→            <div><Label className="text-sm font-medium">University</Label><Select value={universityId || 'none'} onValueChange={(v) => setUniversityId(v === 'none' ? '' : v)}><SelectTrigger className="mt-1.5"><SelectValue placeholder="Select" /></SelectTrigger><SelectContent><SelectItem value="none">None</SelectItem>{universities.map((uni) => <SelectItem key={uni.id} value={uni.id}>{uni.shortName} - {uni.name}</SelectItem>)}</SelectContent></Select></div>
+  1063→  1063→            <div><Label className="text-sm font-medium">Campus</Label><Input placeholder="e.g., Upper Campus" value={campus} onChange={(e) => setCampus(e.target.value)} className="mt-1.5" /></div>
+  1064→  1064→          </div>
+  1065→  1065→          <div><Label className="text-sm font-medium">Location *</Label><Input placeholder="e.g., UCT, Rondebosch" value={location} onChange={(e) => setLocation(e.target.value)} className="mt-1.5" required /></div>
+  1066→  1066→          <Button type="submit" disabled={isSubmitting} className="w-full bg-emerald-600 hover:bg-emerald-700 h-11 rounded-xl font-medium">{isSubmitting ? 'Creating...' : 'Publish Listing'}</Button>
+  1067→  1067→        </form>
+  1068→  1068→      </DialogContent>
+  1069→  1069→    </Dialog>
+  1070→  1070→  )
+  1071→  1071→}
+  1072→  1072→
+  1073→  1073→// ─── Hero Banner ───
+  1074→  1074→function HeroBanner() {
+  1075→  1075→  return (
+  1076→  1076→    <div className="bg-gradient-to-r from-emerald-600 via-emerald-500 to-teal-500 text-white">
+  1077→  1077→      <div className="max-w-7xl mx-auto px-4 py-8 md:py-12">
+  1078→  1078→        <div className="flex flex-col md:flex-row items-center justify-between gap-6">
+  1079→  1079→          <div className="text-center md:text-left">
+  1080→  1080→            <h2 className="text-2xl md:text-3xl font-bold mb-2">Student Marketplace</h2>
+  1081→  1081→            <p className="text-emerald-100 text-sm md:text-base max-w-lg">Buy and sell textbooks, electronics, accommodation, and more with students across South Africa. Trusted by students at 10+ universities.</p>
+  1082→  1082→            <div className="flex items-center justify-center md:justify-start gap-4 mt-4 text-sm">
+  1083→  1083→              <span className="flex items-center gap-1.5 bg-white/15 px-3 py-1.5 rounded-full"><TrendingUp className="h-4 w-4" /> 27+ Active Listings</span>
+  1084→  1084→              <span className="flex items-center gap-1.5 bg-white/15 px-3 py-1.5 rounded-full"><Shield className="h-4 w-4" /> Verified Students</span>
+  1085→  1085→            </div>
+  1086→  1086→          </div>
+  1087→  1087→          <div className="hidden md:grid grid-cols-3 gap-3 text-center">
+  1088→  1088→            {[{ icon: <BookOpen className="h-6 w-6" />, label: 'Textbooks', count: '6' }, { icon: <Smartphone className="h-6 w-6" />, label: 'Electronics', count: '6' }, { icon: <Home className="h-6 w-6" />, label: 'Accommodation', count: '3' }].map((item) => (
+  1089→  1089→              <div key={item.label} className="bg-white/10 backdrop-blur-sm rounded-xl p-3"><div className="flex justify-center mb-1">{item.icon}</div><p className="text-xs font-medium">{item.label}</p><p className="text-lg font-bold">{item.count}</p></div>
+  1090→  1090→            ))}
+  1091→  1091→          </div>
+  1092→  1092→        </div>
+  1093→  1093→      </div>
+  1094→  1094→    </div>
+  1095→  1095→  )
+  1096→  1096→}
+  1097→  1097→
+  1098→  1098→// ─── Footer ───
+  1099→  1099→function Footer() {
+  1100→  1100→  return (
+  1101→  1101→    <footer className="border-t border-gray-200 bg-white mt-auto">
+  1102→  1102→      <div className="max-w-7xl mx-auto px-4 py-8">
+  1103→  1103→        <div className="grid grid-cols-2 md:grid-cols-4 gap-8">
+  1104→  1104→          <div>
+  1105→  1105→            <div className="flex items-center gap-2 mb-3"><div className="w-8 h-8 bg-emerald-600 rounded-lg flex items-center justify-center"><Tag className="h-4 w-4 text-white" /></div><span className="font-bold text-gray-900">StudentMarket</span></div>
+  1106→  1106→            <p className="text-xs text-gray-500 leading-relaxed">South Africa&apos;s student-to-student marketplace.</p>
+  1107→  1107→          </div>
+  1108→  1108→          <div><h4 className="font-semibold text-sm text-gray-900 mb-3">Popular Categories</h4><ul className="space-y-1.5 text-xs text-gray-500"><li className="hover:text-emerald-600 cursor-pointer">Textbooks & Notes</li><li className="hover:text-emerald-600 cursor-pointer">Electronics</li><li className="hover:text-emerald-600 cursor-pointer">Accommodation</li><li className="hover:text-emerald-600 cursor-pointer">Clothing</li></ul></div>
+  1109→  1109→          <div><h4 className="font-semibold text-sm text-gray-900 mb-3">Top Campuses</h4><ul className="space-y-1.5 text-xs text-gray-500"><li className="hover:text-emerald-600 cursor-pointer">UCT</li><li className="hover:text-emerald-600 cursor-pointer">Wits</li><li className="hover:text-emerald-600 cursor-pointer">Stellenbosch</li><li className="hover:text-emerald-600 cursor-pointer">University of Pretoria</li></ul></div>
+  1110→  1110→          <div><h4 className="font-semibold text-sm text-gray-900 mb-3">Support</h4><ul className="space-y-1.5 text-xs text-gray-500"><li className="hover:text-emerald-600 cursor-pointer">Help Centre</li><li className="hover:text-emerald-600 cursor-pointer">Safety Tips</li><li className="hover:text-emerald-600 cursor-pointer">Report a Problem</li><li className="hover:text-emerald-600 cursor-pointer">Terms & Conditions</li></ul></div>
+  1111→  1111→        </div>
+  1112→  1112→        <Separator className="my-6" /><p className="text-xs text-gray-400 text-center">Made with care for South African students.</p>
+  1113→  1113→      </div>
+  1114→  1114→    </footer>
+  1115→  1115→  )
+  1116→  1116→}
+  1117→  1117→
+  1118→  1118→// ─── Main Page ───
+  1119→  1119→export default function MarketplacePage() {
+  1120→  1120→  const {
+  1121→  1121→    viewMode, setSelectedListing, searchQuery, selectedCategory, selectedUniversity,
+  1122→  1122→    selectedCondition, sortBy,
+  1123→  1123→  } = useMarketplaceStore()
+  1124→  1124→
+  1125→  1125→  const [listings, setListings] = useState<ListingDetail[]>([])
+  1126→  1126→  const [categories, setCategories] = useState<Category[]>([])
+  1127→  1127→  const [universities, setUniversities] = useState<University[]>([])
+  1128→  1128→  const [storyGroups, setStoryGroups] = useState<StoryGroup[]>([])
+  1129→  1129→  const [isLoading, setIsLoading] = useState(true)
+  1130→  1130→  const [refreshKey, setRefreshKey] = useState(0)
+  1131→  1131→
+  1132→  1132→  const fetchListings = useCallback(async () => {
+  1133→  1133→    setIsLoading(true)
+  1134→  1134→    try {
+  1135→  1135→      const params = new URLSearchParams()
+  1136→  1136→      if (searchQuery) params.set('search', searchQuery)
+  1137→  1137→      if (selectedCategory) params.set('categoryId', selectedCategory)
+  1138→  1138→      if (selectedUniversity) params.set('universityId', selectedUniversity)
+  1139→  1139→      if (selectedCondition) params.set('condition', selectedCondition)
+  1140→  1140→      if (sortBy) params.set('sortBy', sortBy)
+  1141→  1141→      const res = await fetch(`/api/listings?${params}`)
+  1142→  1142→      if (res.ok) { const data = await res.json(); setListings(data.listings) }
+  1143→  1143→    } catch { toast.error('Failed to load listings') } finally { setIsLoading(false) }
+  1144→  1144→  }, [searchQuery, selectedCategory, selectedUniversity, selectedCondition, sortBy])
+  1145→  1145→
+  1146→  1146→  const fetchStories = useCallback(async () => {
+  1147→  1147→    try {
+  1148→  1148→      const res = await fetch('/api/stories')
+  1149→  1149→      if (res.ok) setStoryGroups(await res.json())
+  1150→  1150→    } catch { /* ignore */ }
+  1151→  1151→  }, [])
+  1152→  1152→
+  1153→  1153→  useEffect(() => {
+  1154→  1154→    fetch('/api/categories').then((r) => r.json()).then(setCategories).catch(() => {})
+  1155→  1155→    fetch('/api/universities').then((r) => r.json()).then(setUniversities).catch(() => {})
+  1156→  1156→    fetchStories()
+  1157→  1157→  }, [])
+  1158→  1158→
+  1159→  1159→  useEffect(() => { fetchListings() }, [fetchListings, refreshKey])
+  1160→  1160→
+  1161→  1161→  const handleSelectListing = (listing: ListingDetail) => setSelectedListing(listing)
+  1162→  1162→
+  1163→  1163→  const [viewingStoryGroup, setViewingStoryGroup] = useState<StoryGroup | null>(null)
+  1164→  1164→  const [viewingStoryIndex, setViewingStoryIndex] = useState(0)
+  1165→  1165→
+  1166→  1166→  const handleStoryClick = (group: StoryGroup) => {
+  1167→  1167→    setViewingStoryGroup(group)
+  1168→  1168→    setViewingStoryIndex(0)
+  1169→  1169→  }
+  1170→  1170→
+  1171→  1171→  const handleStoryClose = () => {
+  1172→  1172→    setViewingStoryGroup(null)
+  1173→  1173→    setViewingStoryIndex(0)
+  1174→  1174→  }
+  1175→  1175→
+  1176→  1176→  const handleCreated = () => { setRefreshKey((k) => k + 1); fetchStories() }
+  1177→  1177→
+  1178→  1178→  return (
+  1179→  1179→    <div className="min-h-screen flex flex-col bg-gray-50">
+  1180→  1180→      <Header />
+  1181→  1181→
+  1182→  1182→      {viewMode === 'browse' && (<>
+  1183→  1183→        <StoriesTray storyGroups={storyGroups} onStoryClick={handleStoryClick} />
+  1184→  1184→        <CategoryBar categories={categories} />
+  1185→  1185→        <FilterBar universities={universities} />
+  1186→  1186→        <HeroBanner />
+  1187→  1187→        <main className="flex-1">
+  1188→  1188→          {isLoading ? (
+  1189→  1189→            <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-3 p-4">
+  1190→  1190→              {Array.from({ length: 12 }).map((_, i) => <Card key={i} className="overflow-hidden"><Skeleton className="aspect-square" /><CardContent className="p-3 space-y-2"><Skeleton className="h-4 w-3/4" /><Skeleton className="h-3 w-1/2" /></CardContent></Card>)}
+  1191→  1191→            </div>
+  1192→  1192→          ) : <ListingGrid listings={listings} onSelectListing={handleSelectListing} />}
+  1193→  1193→        </main>
+  1194→  1194→      </>)}
+  1195→  1195→
+  1196→  1196→      {/* Modals */}
+  1197→  1197→      <ListingDetailDialog />
+  1198→  1198→      <LoginDialog />
+  1199→  1199→      <SignupDialog />
+  1200→  1200→      <CreateListingDialog categories={categories} universities={universities} onCreated={handleCreated} />
+  1201→  1201→      <CreateStoryDialog onCreated={handleCreated} />
+  1202→  1202→
+  1203→  1203→      {/* Story Viewer */}
+  1204→  1204→      {viewingStoryGroup && <StoryViewer storyGroups={storyGroups} viewingStoryGroup={viewingStoryGroup} viewingStoryIndex={viewingStoryIndex} setViewingStoryGroup={setViewingStoryGroup} setViewingStoryIndex={setViewingStoryIndex} onClose={handleStoryClose} />}
+  1205→  1205→
+  1206→  1206→      <Footer />
+  1207→  1207→    </div>
+  1208→  1208→  )
+  1209→  1209→}
+  1210→  1210→

@@ -18,7 +18,7 @@ export type ListingDetail = {
   createdAt: string
   updatedAt: string
   sellerId: string
-  seller: { id: string; name: string; avatar: string; university: string | null }
+  seller: { id: string; name: string; avatar: string; university: string | null; campus: string | null; bio: string | null; phone: string | null }
   category: { id: string; name: string; icon: string; color: string }
   university: { id: string; name: string; shortName: string } | null
 }
@@ -63,6 +63,7 @@ export type AuthUser = {
   campus: string | null
   bio: string | null
   verified: boolean
+  profileImages?: string | null
 }
 
 export type StoryItem = {
@@ -88,7 +89,27 @@ export type StoryGroup = {
   stories: StoryItem[]
 }
 
-type ViewMode = 'browse' | 'detail' | 'create' | 'chat' | 'login' | 'signup'
+export type ConversationSummary = {
+  id: string
+  otherUser: { id: string; name: string; avatar: string; verified: boolean }
+  listing: { id: string; title: string; price: number; images: string; status: string }
+  lastMessage: string | null
+  lastMessageAt: string | null
+  unreadCount: number
+  createdAt: string
+}
+
+export type ConversationMessage = {
+  id: string
+  conversationId: string
+  senderId: string
+  content: string
+  read: boolean
+  createdAt: string
+  sender: { id: string; name: string; avatar: string }
+}
+
+type ViewMode = 'browse' | 'detail' | 'create' | 'login' | 'signup'
 
 interface MarketplaceStore {
   // View state
@@ -111,14 +132,13 @@ interface MarketplaceStore {
   sortBy: string
   setSortBy: (sort: string) => void
 
-  // Chat
-  currentChatListing: ListingDetail | null
-  setCurrentChatListing: (listing: ListingDetail | null) => void
-
   // Auth
   currentUser: AuthUser | null
   setCurrentUser: (user: AuthUser | null) => void
   logout: () => void
+
+  // Legacy compat
+  currentUserId: string | null
 
   // Stories
   viewingStoryGroup: StoryGroup | null
@@ -152,12 +172,11 @@ export const useMarketplaceStore = create<MarketplaceStore>()(
       sortBy: 'newest',
       setSortBy: (sort) => set({ sortBy: sort }),
 
-      currentChatListing: null,
-      setCurrentChatListing: (listing) => set({ currentChatListing: listing }),
-
       currentUser: null,
       setCurrentUser: (user) => set({ currentUser: user, currentUserId: user?.id || null }),
       logout: () => set({ currentUser: null, currentUserId: null }),
+
+      currentUserId: null as string | null,
 
       viewingStoryGroup: null,
       viewingStoryIndex: 0,
@@ -165,10 +184,6 @@ export const useMarketplaceStore = create<MarketplaceStore>()(
       setViewingStoryIndex: (index) => set({ viewingStoryIndex: index }),
       showCreateStory: false,
       setShowCreateStory: (show) => set({ showCreateStory: show }),
-
-      // Legacy alias for backward compat (used in listing create)
-      currentUserId: null as string | null,
-      setCurrentUserId: (id) => set({ currentUserId: id }),
 
       resetFilters: () =>
         set({
