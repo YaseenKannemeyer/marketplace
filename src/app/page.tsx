@@ -1,7 +1,7 @@
 'use client'
 
 import { useState, useEffect, useCallback, useRef, Suspense } from 'react'
-import { useRouter } from 'next/navigation'
+import { useRouter, useSearchParams } from 'next/navigation'
 import { useMarketplaceStore, type ListingDetail, type Category, type University, type StoryGroup, type StoryItem } from '@/store/marketplace'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
@@ -729,6 +729,12 @@ function Header() {
                       <button onClick={() => { setViewMode('create'); setShowUserMenu(false) }} className="w-full px-4 py-2.5 text-sm text-left hover:bg-emerald-50/40 flex items-center gap-2.5 transition-colors">
                         <Plus className="h-4 w-4 text-gray-400" /> New Listing
                       </button>
+                      <button onClick={() => { router.push('/my-listings'); setShowUserMenu(false) }} className="w-full px-4 py-2.5 text-sm text-left hover:bg-emerald-50/40 flex items-center gap-2.5 transition-colors">
+                        <Tag className="h-4 w-4 text-gray-400" /> My Listings
+                      </button>
+                      <button onClick={() => { router.push('/wishlist'); setShowUserMenu(false) }} className="w-full px-4 py-2.5 text-sm text-left hover:bg-emerald-50/40 flex items-center gap-2.5 transition-colors">
+                        <Heart className="h-4 w-4 text-gray-400" /> Wishlist
+                      </button>
                       <div className="border-t border-gray-100 mt-1 pt-1">
                         <button onClick={() => { logout(); setShowUserMenu(false); toast.success('Logged out'); router.push('/auth') }} className="w-full px-4 py-2.5 text-sm text-left hover:bg-red-50 text-red-600 flex items-center gap-2.5">
                           <LogOut className="h-4 w-4" /> Sign Out
@@ -1120,7 +1126,8 @@ function AuthGate() {
 }
 
 function MarketplacePage() {
-  const { searchQuery, selectedCategory, selectedUniversity, selectedCondition, sortBy } = useMarketplaceStore()
+  const searchParams = useSearchParams()
+  const { searchQuery, selectedCategory, selectedUniversity, selectedCondition, sortBy, setViewMode, viewMode } = useMarketplaceStore()
 
   const [listings, setListings] = useState<ListingDetail[]>([])
   const [categories, setCategories] = useState<Category[]>([])
@@ -1128,6 +1135,14 @@ function MarketplacePage() {
   const [storyGroups, setStoryGroups] = useState<StoryGroup[]>([])
   const [isLoading, setIsLoading] = useState(true)
   const [refreshKey, setRefreshKey] = useState(0)
+
+  // Handle ?view=create from external links
+  useEffect(() => {
+    const view = searchParams.get('view')
+    if (view === 'create' && viewMode !== 'create') {
+      setViewMode('create')
+    }
+  }, [searchParams, viewMode, setViewMode])
 
   const fetchListings = useCallback(async () => {
     setIsLoading(true)

@@ -1,0 +1,402 @@
+     1→   600→   600→            <div className="hidden sm:block">
+     2→   601→   601→              <h1 className="text-lg font-bold text-gray-900 leading-tight">StudentMarket</h1>
+     3→   602→   602→              <p className="text-[10px] text-emerald-600 font-semibold leading-tight tracking-wide uppercase">South Africa</p>
+     4→   603→   603→            </div>
+     5→   604→   604→          </div>
+     6→   605→   605→
+     7→   606→   606→          <div className="flex-1 max-w-2xl">
+     8→   607→   607→            <div className="relative">
+     9→   608→   608→              <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400" />
+    10→   609→   609→              <Input placeholder="Search textbooks, electronics, accommodation..." value={searchQuery} onChange={(e) => setSearchQuery(e.target.value)} className="pl-10 pr-4 h-10 bg-white/70 border-gray-200/80 rounded-xl text-sm focus:bg-white focus:border-emerald-400 focus:ring-emerald-400/30 shadow-sm" />
+    11→   610→   610→              {searchQuery && (<button onClick={() => setSearchQuery('')} className="absolute right-3 top-1/2 -translate-y-1/2"><X className="h-4 w-4 text-gray-400 hover:text-gray-600" /></button>)}
+    12→   611→   611→            </div>
+    13→   612→   612→          </div>
+    14→   613→   613→
+    15→   614→   614→          <div className="flex items-center gap-1.5">
+    16→   615→   615→            {/* Notification Bell */}
+    17→   616→   616→            {currentUser && (
+    18→   617→   617→              <div className="relative">
+    19→   618→   618→                <button
+    20→   619→   619→                  onClick={() => setShowNotifications(!showNotifications)}
+    21→   620→   620→                  className="relative p-2 rounded-xl hover:bg-white/60 transition-all duration-200"
+    22→   621→   621→                >
+    23→   622→   622→                  <Bell className="h-5 w-5 text-gray-600" />
+    24→   623→   623→                  {unreadCount > 0 && (
+    25→   624→   624→                    <span className="absolute -top-0.5 -right-0.5 min-w-[18px] h-[18px] bg-gradient-to-r from-red-500 to-rose-500 text-white text-[10px] font-bold rounded-full flex items-center justify-center px-1 shadow-lg shadow-red-200/50">
+    26→   625→   625→                      {unreadCount > 9 ? '9+' : unreadCount}
+    27→   626→   626→                    </span>
+    28→   627→   627→                  )}
+    29→   628→   628→                </button>
+    30→   629→   629→
+    31→   630→   630→                {/* Notifications Dropdown */}
+    32→   631→   631→                {showNotifications && (
+    33→   632→   632→                  <>
+    34→   633→   633→                    <div className="fixed inset-0 z-40" onClick={() => setShowNotifications(false)} />
+    35→   634→   634→                    <div className="absolute right-0 top-full mt-2 w-80 bg-white rounded-2xl shadow-xl shadow-gray-200/50 border border-gray-100 z-50 overflow-hidden">
+    36→   635→   635→                      <div className="px-4 py-3 border-b border-gray-50 flex items-center justify-between bg-gradient-to-r from-emerald-50/50 to-transparent">
+    37→   636→   636→                        <h3 className="text-sm font-bold text-gray-900">Notifications</h3>
+    38→   637→   637→                        {unreadCount > 0 && (
+    39→   638→   638→                          <span className="text-xs text-emerald-600 font-semibold bg-emerald-50 px-2 py-0.5 rounded-full">{unreadCount} unread</span>
+    40→   639→   639→                        )}
+    41→   640→   640→                      </div>
+    42→   641→   641→                      <div className="max-h-80 overflow-y-auto">
+    43→   642→   642→                        {notifications.length === 0 ? (
+    44→   643→   643→                          <div className="px-4 py-10 text-center">
+    45→   644→   644→                            <div className="w-14 h-14 bg-emerald-50 rounded-full flex items-center justify-center mx-auto mb-3">
+    46→   645→   645→                              <Bell className="h-6 w-6 text-emerald-400" />
+    47→   646→   646→                            </div>
+    48→   647→   647→                            <p className="text-sm font-medium text-gray-600">No new notifications</p>
+    49→   648→   648→                            <p className="text-xs text-gray-400 mt-1">You&apos;re all caught up!</p>
+    50→   649→   649→                          </div>
+    51→   650→   650→                        ) : (
+    52→   651→   651→                          notifications.map((notif) => (
+    53→   652→   652→                            <button
+    54→   653→   653→                              key={notif.id}
+    55→   654→   654→                              onClick={() => handleMarkRead(notif.conversationId)}
+    56→   655→   655→                              className="w-full px-4 py-3 text-left hover:bg-emerald-50/40 flex items-start gap-3 border-b border-gray-50/80 transition-colors"
+    57→   656→   656→                            >
+    58→   657→   657→                              <Avatar className="h-9 w-9 shrink-0 ring-2 ring-emerald-100">
+    59→   658→   658→                                <AvatarImage src={notif.sender.avatar || ''} />
+    60→   659→   659→                                <AvatarFallback className="text-xs bg-emerald-50">{notif.sender.name.charAt(0)}</AvatarFallback>
+    61→   660→   660→                              </Avatar>
+    62→   661→   661→                              <div className="flex-1 min-w-0">
+    63→   662→   662→                                <p className="text-sm font-semibold text-gray-900">{notif.title}</p>
+    64→   663→   663→                                <p className="text-xs text-gray-500 truncate mt-0.5">{notif.body}</p>
+    65→   664→   664→                                {notif.listing && (
+    66→   665→   665→                                  <p className="text-[11px] text-emerald-600 font-medium mt-0.5 truncate">Re: {notif.listing.title}</p>
+    67→   666→   666→                                )}
+    68→   667→   667→                                <p className="text-[10px] text-gray-400 mt-1">{timeAgo(notif.createdAt)}</p>
+    69→   668→   668→                              </div>
+    70→   669→   669→                              <div className="w-2.5 h-2.5 bg-gradient-to-r from-emerald-400 to-teal-400 rounded-full shrink-0 mt-1.5 shadow-sm shadow-emerald-200" />
+    71→   670→   670→                            </button>
+    72→   671→   671→                          ))
+    73→   672→   672→                        )}
+    74→   673→   673→                      </div>
+    75→   674→   674→                      {unreadCount > 0 && (
+    76→   675→   675→                        <div className="px-4 py-2.5 border-t border-gray-50 bg-gray-50/50">
+    77→   676→   676→                          <button onClick={() => { router.push('/chat'); setShowNotifications(false) }} className="w-full text-center text-xs font-semibold text-emerald-600 hover:text-emerald-700">
+    78→   677→   677→                            View all messages
+    79→   678→   678→                          </button>
+    80→   679→   679→                        </div>
+    81→   680→   680→                      )}
+    82→   681→   681→                    </div>
+    83→   682→   682→                  </>
+    84→   683→   683→                )}
+    85→   684→   684→              </div>
+    86→   685→   685→            )}
+    87→   686→   686→
+    88→   687→   687→            {/* Chat icon */}
+    89→   688→   688→            {currentUser && (
+    90→   689→   689→              <button
+    91→   690→   690→                onClick={() => router.push('/chat')}
+    92→   691→   691→                className="relative p-2 rounded-xl hover:bg-white/60 transition-all duration-200"
+    93→   692→   692→              >
+    94→   693→   693→                <MessageSquare className="h-5 w-5 text-gray-600" />
+    95→   694→   694→              </button>
+    96→   695→   695→            )}
+    97→   696→   696→
+    98→   697→   697→            {currentUser ? (
+    99→   698→   698→              <>
+   100→   699→   699→                {currentUser.verified && (
+   101→   700→   700→                  <Badge className="bg-emerald-50 text-emerald-700 border-emerald-200/60 gap-1 text-xs hidden sm:flex shadow-sm">
+   102→   701→   701→                    <Shield className="h-3 w-3" /> Verified
+   103→   702→   702→                  </Badge>
+   104→   703→   703→                )}
+   105→   704→   704→                <div className="relative">
+   106→   705→   705→                  <button onClick={() => setShowUserMenu(!showUserMenu)} className="flex items-center gap-2 px-2 py-1.5 rounded-xl hover:bg-white/60 transition-all duration-200">
+   107→   706→   706→                    <Avatar className="h-8 w-8 ring-2 ring-emerald-100">
+   108→   707→   707→                      <AvatarImage src={currentUser.avatar || ''} />
+   109→   708→   708→                      <AvatarFallback className="text-[10px] bg-gradient-to-br from-emerald-50 to-teal-50">{currentUser.name.charAt(0)}</AvatarFallback>
+   110→   709→   709→                    </Avatar>
+   111→   710→   710→                    <span className="hidden sm:inline text-sm font-semibold text-gray-700">{currentUser.name.split(' ')[0]}</span>
+   112→   711→   711→                  </button>
+   113→   712→   712→
+   114→   713→   713→                  {showUserMenu && (
+   115→   714→   714→                    <div className="absolute right-0 top-full mt-2 w-60 bg-white rounded-2xl shadow-xl shadow-gray-200/50 border border-gray-100 py-2 z-50">
+   116→   715→   715→                      <div className="px-4 py-3 border-b border-gray-50 bg-gradient-to-r from-emerald-50/50 to-transparent">
+   117→   716→   716→                        <p className="text-sm font-bold">{currentUser.name}</p>
+   118→   717→   717→                        <p className="text-xs text-gray-500">{currentUser.email}</p>
+   119→   718→   718→                        {currentUser.university && <p className="text-xs text-emerald-600 font-medium mt-0.5">{currentUser.university}</p>}
+   120→   719→   719→                      </div>
+   121→   720→   720→                      <button onClick={() => { router.push('/profile'); setShowUserMenu(false) }} className="w-full px-4 py-2.5 text-sm text-left hover:bg-emerald-50/40 flex items-center gap-2.5 transition-colors">
+   122→   721→   721→                        <Settings className="h-4 w-4 text-gray-400" /> My Profile
+   123→   722→   722→                      </button>
+   124→   723→   723→                      <button onClick={() => { router.push('/chat'); setShowUserMenu(false) }} className="w-full px-4 py-2.5 text-sm text-left hover:bg-emerald-50/40 flex items-center gap-2.5 transition-colors">
+   125→   724→   724→                        <MessageSquare className="h-4 w-4 text-gray-400" /> Messages
+   126→   725→   725→                      </button>
+   127→   726→   726→                      <button onClick={() => { setShowCreateStory(true); setShowUserMenu(false) }} className="w-full px-4 py-2.5 text-sm text-left hover:bg-emerald-50/40 flex items-center gap-2.5 transition-colors">
+   128→   727→   727→                        <Camera className="h-4 w-4 text-gray-400" /> Create Story
+   129→   728→   728→                      </button>
+   130→   729→   729→                      <button onClick={() => { setViewMode('create'); setShowUserMenu(false) }} className="w-full px-4 py-2.5 text-sm text-left hover:bg-emerald-50/40 flex items-center gap-2.5 transition-colors">
+   131→   730→   730→                        <Plus className="h-4 w-4 text-gray-400" /> New Listing
+   132→   731→   731→                      </button>
+   133→   732→   732→                      <div className="border-t border-gray-100 mt-1 pt-1">
+   134→   733→   733→                        <button onClick={() => { logout(); setShowUserMenu(false); toast.success('Logged out'); router.push('/auth') }} className="w-full px-4 py-2.5 text-sm text-left hover:bg-red-50 text-red-600 flex items-center gap-2.5">
+   135→   734→   734→                          <LogOut className="h-4 w-4" /> Sign Out
+   136→   735→   735→                        </button>
+   137→   736→   736→                      </div>
+   138→   737→   737→                    </div>
+   139→   738→   738→                  )}
+   140→   739→   739→                </div>
+   141→   740→   740→              </>
+   142→   741→   741→            ) : (
+   143→   742→   742→              <Button onClick={() => setViewMode('login')} variant="outline" className="rounded-xl gap-1.5 text-sm font-medium border-gray-200/80 shadow-sm">
+   144→   743→   743→                <User className="h-4 w-4" />
+   145→   744→   744→                <span className="hidden sm:inline">Sign In</span>
+   146→   745→   745→              </Button>
+   147→   746→   746→            )}
+   148→   747→   747→
+   149→   748→   748→            <Button onClick={() => currentUser ? setViewMode('create') : setViewMode('signup')} className="bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-700 hover:to-teal-700 rounded-xl gap-1.5 text-sm font-semibold shadow-lg shadow-emerald-200/50">
+   150→   749→   749→              <Plus className="h-4 w-4" />
+   151→   750→   750→              <span className="hidden sm:inline">Sell</span>
+   152→   751→   751→            </Button>
+   153→   752→   752→          </div>
+   154→   753→   753→        </div>
+   155→   754→   754→      </div>
+   156→   755→   755→      {showUserMenu && <div className="fixed inset-0 z-40" onClick={() => setShowUserMenu(false)} />}
+   157→   756→   756→    </header>
+   158→   757→   757→  )
+   159→   758→   758→}
+   160→   759→   759→
+   161→   760→   760→// ─── Category Bar ───
+   162→   761→   761→function CategoryBar({ categories }: { categories: Category[] }) {
+   163→   762→   762→  const { selectedCategory, setSelectedCategory } = useMarketplaceStore()
+   164→   763→   763→  return (
+   165→   764→   764→    <div className="border-b border-gray-100/60 bg-white/60 backdrop-blur-sm">
+   166→   765→   765→      <div className="max-w-7xl mx-auto px-4">
+   167→   766→   766→        <div className="flex gap-2 py-2.5 overflow-x-auto no-scrollbar">
+   168→   767→   767→          <button onClick={() => setSelectedCategory('')} className={`flex items-center gap-2 px-5 py-2 rounded-xl text-sm font-semibold whitespace-nowrap transition-all duration-300 ${!selectedCategory ? 'bg-gradient-to-r from-emerald-600 to-teal-600 text-white shadow-lg shadow-emerald-200/40' : 'bg-white text-gray-600 hover:bg-gray-50 hover:shadow-md border border-gray-100'}`}>
+   169→   768→   768→            <LayoutGrid className="h-4 w-4" /> All
+   170→   769→   769→          </button>
+   171→   770→   770→          {categories.map((cat) => (
+   172→   771→   771→            <button key={cat.id} onClick={() => setSelectedCategory(selectedCategory === cat.id ? '' : cat.id)} className={`flex items-center gap-2 px-5 py-2 rounded-xl text-sm font-semibold whitespace-nowrap transition-all duration-300 border ${selectedCategory === cat.id ? 'text-white shadow-lg border-transparent' : 'bg-white text-gray-600 hover:bg-gray-50 hover:shadow-md border-gray-100'}`} style={selectedCategory === cat.id ? { backgroundColor: cat.color, borderColor: 'transparent' } : undefined}>
+   173→   772→   772→              {ICON_MAP[cat.icon]}
+   174→   773→   773→              <span className="hidden sm:inline">{cat.name}</span>
+   175→   774→   774→              {cat._count.listings > 0 && (<span className={`text-xs px-2 py-0.5 rounded-lg ${selectedCategory === cat.id ? 'bg-white/20 backdrop-blur-sm' : 'bg-gray-100'}`}>{cat._count.listings}</span>)}
+   176→   775→   775→            </button>
+   177→   776→   776→          ))}
+   178→   777→   777→        </div>
+   179→   778→   778→      </div>
+   180→   779→   779→    </div>
+   181→   780→   780→  )
+   182→   781→   781→}
+   183→   782→   782→
+   184→   783→   783→// ─── Filter Bar ───
+   185→   784→   784→function FilterBar({ universities }: { universities: University[] }) {
+   186→   785→   785→  const { selectedUniversity, setSelectedUniversity, selectedCondition, setSelectedCondition, sortBy, setSortBy, resetFilters } = useMarketplaceStore()
+   187→   786→   786→  const [showFilters, setShowFilters] = useState(false)
+   188→   787→   787→  return (
+   189→   788→   788→    <div className="bg-white/50 backdrop-blur-sm border-b border-gray-100/60">
+   190→   789→   789→      <div className="max-w-7xl mx-auto px-4 py-3">
+   191→   790→   790→        <div className="flex items-center gap-3 flex-wrap">
+   192→   791→   791→          <button onClick={() => setShowFilters(!showFilters)} className={`flex items-center gap-2 px-4 py-2 bg-white border rounded-xl text-sm font-medium transition-all duration-200 shadow-sm ${showFilters ? 'border-emerald-300 text-emerald-700 shadow-emerald-100' : 'border-gray-200/80 text-gray-700 hover:bg-gray-50 hover:shadow-md'}`}>
+   193→   792→   792→            <SlidersHorizontal className="h-4 w-4" /> Filters
+   194→   793→   793→            {(selectedUniversity || selectedCondition) && <span className="w-2 h-2 bg-emerald-500 rounded-full shadow-sm shadow-emerald-300" />}
+   195→   794→   794→          </button>
+   196→   795→   795→          <AnimatePresence>
+   197→   796→   796→            {showFilters && (
+   198→   797→   797→              <motion.div initial={{ opacity: 0, height: 0 }} animate={{ opacity: 1, height: 'auto' }} exit={{ opacity: 0, height: 0 }} className="flex items-center gap-2 flex-wrap">
+   199→   798→   798→                <Select value={selectedUniversity || 'all'} onValueChange={(v) => setSelectedUniversity(v === 'all' ? '' : v)}>
+   200→   799→   799→                  <SelectTrigger className="w-auto h-9 gap-1.5 text-sm border-gray-200/80 bg-white shadow-sm"><GraduationCap className="h-3.5 w-3.5 text-gray-500" /><SelectValue placeholder="University" /></SelectTrigger>
+   201→   800→   800→                  <SelectContent><SelectItem value="all">All Universities</SelectItem>{universities.map((uni) => <SelectItem key={uni.id} value={uni.id}>{uni.shortName} ({uni._count.listings})</SelectItem>)}</SelectContent>
+   202→   801→   801→                </Select>
+   203→   802→   802→                <Select value={selectedCondition || 'all'} onValueChange={(v) => setSelectedCondition(v === 'all' ? '' : v)}>
+   204→   803→   803→                  <SelectTrigger className="w-auto h-9 gap-1.5 text-sm border-gray-200/80 bg-white shadow-sm"><CheckCircle2 className="h-3.5 w-3.5 text-gray-500" /><SelectValue placeholder="Condition" /></SelectTrigger>
+   205→   804→   804→                  <SelectContent>{CONDITIONS.map((c) => <SelectItem key={c} value={c.toLowerCase().includes('all') ? 'all' : c}>{c}</SelectItem>)}</SelectContent>
+   206→   805→   805→                </Select>
+   207→   806→   806→                {(selectedUniversity || selectedCondition) && (<Button variant="ghost" size="sm" onClick={resetFilters} className="h-9 text-xs text-red-500 hover:text-red-600 hover:bg-red-50 rounded-lg"><X className="h-3 w-3 mr-1" /> Clear</Button>)}
+   208→   807→   807→              </motion.div>
+   209→   808→   808→            )}
+   210→   809→   809→          </AnimatePresence>
+   211→   810→   810→          <div className="ml-auto">
+   212→   811→   811→            <Select value={sortBy} onValueChange={setSortBy}>
+   213→   812→   812→              <SelectTrigger className="w-auto h-9 gap-1.5 text-sm border-gray-200/80 bg-white shadow-sm"><ArrowUpDown className="h-3.5 w-3.5 text-gray-500" /><SelectValue /></SelectTrigger>
+   214→   813→   813→              <SelectContent><SelectItem value="newest">Newest first</SelectItem><SelectItem value="price_low">Price: Low to High</SelectItem><SelectItem value="price_high">Price: High to Low</SelectItem></SelectContent>
+   215→   814→   814→            </Select>
+   216→   815→   815→          </div>
+   217→   816→   816→        </div>
+   218→   817→   817→      </div>
+   219→   818→   818→    </div>
+   220→   819→   819→  )
+   221→   820→   820→}
+   222→   821→   821→
+   223→   822→   822→// ─── Listing Card ───
+   224→   823→   823→function ListingCard({ listing, onClick }: { listing: ListingDetail; onClick: () => void }) {
+   225→   824→   824→  const images = JSON.parse(listing.images || '[]') as string[]
+   226→   825→   825→  return (
+   227→   826→   826→    <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} whileHover={{ y: -4 }} transition={{ duration: 0.3, ease: 'easeOut' }}>
+   228→   827→   827→      <Card className="overflow-hidden cursor-pointer group border border-gray-200/80 hover:shadow-xl hover:shadow-gray-200/40 hover:border-emerald-200/60 transition-all duration-500 bg-white" onClick={onClick}>
+   229→   828→   828→        <div className="relative aspect-square bg-gray-50 overflow-hidden rounded-t-2xl">
+   230→   829→   829→          {images[0] ? (
+   231→   830→   830→            <img src={images[0]} alt={listing.title} className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700 ease-out" loading="lazy" />
+   232→   831→   831→          ) : (
+   233→   832→   832→            <div className="w-full h-full flex items-center justify-center bg-gradient-to-br from-emerald-50/80 via-gray-50 to-teal-50/80">
+   234→   833→   833→              <div className="text-center p-4 opacity-60 group-hover:opacity-80 transition-opacity">{ICON_MAP[listing.category.icon]}<p className="text-xs text-gray-400 mt-2 font-medium">{listing.category.name}</p></div>
+   235→   834→   834→            </div>
+   236→   835→   835→          )}
+   237→   836→   836→          {/* Gradient overlay on hover */}
+   238→   837→   837→          <div className="absolute inset-0 bg-gradient-to-t from-black/20 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
+   239→   838→   838→          <Badge className="absolute top-2.5 left-2.5 text-[10px] font-semibold shadow-md" style={{ backgroundColor: listing.category.color + 'DD', color: 'white' }}>{listing.condition}</Badge>
+   240→   839→   839→          <div className="absolute bottom-2.5 left-2.5">
+   241→   840→   840→            <span className={`text-sm font-bold px-2.5 py-1 rounded-lg backdrop-blur-md shadow-sm ${listing.price === 0 ? 'bg-emerald-500/90' : 'bg-black/60 backdrop-blur-md'} text-white`}>{formatPrice(listing.price)}</span>
+   242→   841→   841→          </div>
+   243→   842→   842→          {images.length > 1 && (
+   244→   843→   843→            <div className="absolute bottom-2.5 right-2.5 bg-black/50 backdrop-blur-md text-white text-[10px] px-2 py-1 rounded-lg font-medium shadow-sm">{images.length} photos</div>
+   245→   844→   844→          )}
+   246→   845→   845→        </div>
+   247→   846→   846→        <CardContent className="p-3.5">
+   248→   847→   847→          <h3 className="text-sm font-semibold text-gray-900 line-clamp-2 leading-snug min-h-[2.5em] group-hover:text-emerald-800 transition-colors">{listing.title}</h3>
+   249→   848→   848→          <div className="flex items-center gap-2 mt-2.5">
+   250→   849→   849→            <div className="flex items-center gap-1 text-gray-400">
+   251→   850→   850→              <MapPin className="h-3 w-3" /><span className="text-[11px] truncate">{listing.location}</span>
+   252→   851→   851→            </div>
+   253→   852→   852→            <span className="text-gray-200">·</span>
+   254→   853→   853→            <div className="flex items-center gap-1 text-gray-400">
+   255→   854→   854→              <Clock className="h-3 w-3" /><span className="text-[11px]">{timeAgo(listing.createdAt)}</span>
+   256→   855→   855→            </div>
+   257→   856→   856→          </div>
+   258→   857→   857→          <div className="flex items-center gap-2 mt-2.5">
+   259→   858→   858→            <Avatar className="h-5 w-5 ring-1 ring-emerald-100"><AvatarImage src={listing.seller.avatar} /><AvatarFallback className="text-[8px] bg-emerald-50">{listing.seller.name.charAt(0)}</AvatarFallback></Avatar>
+   260→   859→   859→            <span className="text-[11px] text-gray-500 truncate font-medium">{listing.seller.name}</span>
+   261→   860→   860→            <div className="ml-auto flex items-center gap-1 text-gray-300">
+   262→   861→   861→              <Eye className="h-3 w-3" /><span className="text-[10px]">{listing.views}</span>
+   263→   862→   862→            </div>
+   264→   863→   863→          </div>
+   265→   864→   864→        </CardContent>
+   266→   865→   865→      </Card>
+   267→   866→   866→    </motion.div>
+   268→   867→   867→  )
+   269→   868→   868→}
+   270→   869→   869→
+   271→   870→   870→// ─── Listing Grid ───
+   272→   871→   871→function ListingGrid({ listings, onSelectListing }: { listings: ListingDetail[]; onSelectListing: (l: ListingDetail) => void }) {
+   273→   872→   872→  const router = useRouter()
+   274→   873→   873→  if (listings.length === 0) {
+   275→   874→   874→    return (
+   276→   875→   875→      <div className="text-center py-20">
+   277→   876→   876→        <div className="w-16 h-16 bg-emerald-50 rounded-2xl flex items-center justify-center mx-auto mb-4"><Search className="h-7 w-7 text-emerald-400" /></div>
+   278→   877→   877→        <h3 className="text-lg font-bold text-gray-900 mb-1">No listings found</h3>
+   279→   878→   878→        <p className="text-gray-400 text-sm">Try adjusting your search or filters</p>
+   280→   879→   879→      </div>
+   281→   880→   880→    )
+   282→   881→   881→  }
+   283→   882→   882→  return (
+   284→   883→   883→    <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-4 p-4">
+   285→   884→   884→      {listings.map((listing) => (
+   286→   885→   885→        <ListingCard key={listing.id} listing={listing} onClick={() => router.push(`/listing/${listing.id}`)} />
+   287→   886→   886→      ))}
+   288→   887→   887→    </div>
+   289→   888→   888→  )
+   290→   889→   889→}
+   291→   890→   890→
+   292→   891→   891→// ─── Create Listing Dialog ───
+   293→   892→   892→function CreateListingDialog({ categories, universities, onCreated }: { categories: Category[]; universities: University[]; onCreated: () => void }) {
+   294→   893→   893→  const { viewMode, setViewMode, currentUser } = useMarketplaceStore()
+   295→   894→   894→  const [title, setTitle] = useState('')
+   296→   895→   895→  const [description, setDescription] = useState('')
+   297→   896→   896→  const [price, setPrice] = useState('')
+   298→   897→   897→  const [categoryId, setCategoryId] = useState('')
+   299→   898→   898→  const [universityId, setUniversityId] = useState('')
+   300→   899→   899→  const [campus, setCampus] = useState('')
+   301→   900→   900→  const [location, setLocation] = useState('')
+   302→   901→   901→  const [condition, setCondition] = useState('Used')
+   303→   902→   902→  const [negotiable, setNegotiable] = useState(true)
+   304→   903→   903→  const [files, setFiles] = useState<File[]>([])
+   305→   904→   904→  const [isSubmitting, setIsSubmitting] = useState(false)
+   306→   905→   905→  const [isUploading, setIsUploading] = useState(false)
+   307→   906→   906→
+   308→   907→   907→  const dropzone = {
+   309→   908→   908→    accept: { 'image/*': ['.jpg', '.jpeg', '.png', '.gif', '.webp'] },
+   310→   909→   909→    multiple: true,
+   311→   910→   910→    maxFiles: 4,
+   312→   911→   911→    maxSize: 5 * 1024 * 1024,
+   313→   912→   912→  } satisfies DropzoneOptions
+   314→   913→   913→
+   315→   914→   914→  const handleSubmit = async (e: React.FormEvent) => {
+   316→   915→   915→    e.preventDefault()
+   317→   916→   916→    if (!title || !description || !categoryId || !location) { toast.error('Please fill in all required fields'); return }
+   318→   917→   917→    setIsSubmitting(true)
+   319→   918→   918→    try {
+   320→   919→   919→      let imageUrls: string[] = []
+   321→   920→   920→
+   322→   921→   921→      // Upload files if any
+   323→   922→   922→      if (files.length > 0) {
+   324→   923→   923→        setIsUploading(true)
+   325→   924→   924→        const formData = new FormData()
+   326→   925→   925→        files.forEach((f) => formData.append('files', f))
+   327→   926→   926→        const uploadRes = await fetch('/api/upload', { method: 'POST', body: formData })
+   328→   927→   927→        if (uploadRes.ok) {
+   329→   928→   928→          const uploadData = await uploadRes.json()
+   330→   929→   929→          imageUrls = uploadData.urls
+   331→   930→   930→        } else {
+   332→   931→   931→          toast.error('Failed to upload images')
+   333→   932→   932→          setIsUploading(false)
+   334→   933→   933→          setIsSubmitting(false)
+   335→   934→   934→          return
+   336→   935→   935→        }
+   337→   936→   936→      }
+   338→   937→   937→
+   339→   938→   938→      const res = await fetch('/api/listings', {
+   340→   939→   939→        method: 'POST',
+   341→   940→   940→        headers: { 'Content-Type': 'application/json' },
+   342→   941→   941→        body: JSON.stringify({ title, description, price: parseFloat(price) || 0, categoryId, universityId: universityId || null, campus, location, condition, negotiable, images: imageUrls, sellerId: currentUser?.id || 'user-1' }),
+   343→   942→   942→      })
+   344→   943→   943→      if (res.ok) {
+   345→   944→   944→        toast.success('Listing created!')
+   346→   945→   945→        setTitle(''); setDescription(''); setPrice(''); setCategoryId(''); setUniversityId(''); setCampus(''); setLocation(''); setCondition('Used'); setNegotiable(true); setFiles([])
+   347→   946→   946→        setViewMode('browse'); onCreated()
+   348→   947→   947→      } else { toast.error('Failed to create listing') }
+   349→   948→   948→    } catch { toast.error('Failed to create listing') } finally { setIsSubmitting(false); setIsUploading(false) }
+   350→   949→   949→  }
+   351→   950→   950→
+   352→   951→   951→  return (
+   353→   952→   952→    <Dialog open={viewMode === 'create'} onOpenChange={(open) => { if (!open) { setViewMode('browse'); setFiles([]) } }}>
+   354→   953→   953→      <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
+   355→   954→   954→        <DialogHeader>
+   356→   955→   955→          <DialogTitle className="text-xl flex items-center gap-2"><div className="w-8 h-8 bg-emerald-100 rounded-lg flex items-center justify-center"><Plus className="h-4 w-4 text-emerald-600" /></div>Create New Listing</DialogTitle>
+   357→   956→   956→          <DialogDescription className="sr-only">Create a new listing</DialogDescription>
+   358→   957→   957→        </DialogHeader>
+   359→   958→   958→        <form onSubmit={handleSubmit} className="space-y-5 mt-4">
+   360→   959→   959→          {/* Photo Upload */}
+   361→   960→   960→          <div>
+   362→   961→   961→            <Label className="text-sm font-medium mb-2 block">Photos</Label>
+   363→   962→   962→            <FileUploader
+   364→   963→   963→              value={files}
+   365→   964→   964→              orientation="vertical"
+   366→   965→   965→              onValueChange={setFiles}
+   367→   966→   966→              dropzoneOptions={dropzone}
+   368→   967→   967→              className="relative rounded-lg"
+   369→   968→   968→            >
+   370→   969→   969→              <FileInput className="outline-dashed outline-2 outline-primary/40 bg-muted/50 hover:bg-muted transition-colors rounded-xl">
+   371→   970→   970→                <div className="flex flex-col items-center justify-center py-8 w-full">
+   372→   971→   971→                  <div className="w-12 h-12 rounded-full bg-emerald-100 flex items-center justify-center mb-3">
+   373→   972→   972→                    <Upload className="h-6 w-6 text-emerald-600" />
+   374→   973→   973→                  </div>
+   375→   974→   974→                  <p className="text-sm font-medium text-gray-700">
+   376→   975→   975→                    <span className="text-emerald-600">Click to upload</span> or drag and drop
+   377→   976→   976→                  </p>
+   378→   977→   977→                  <p className="text-xs text-gray-400 mt-1">JPG, PNG, GIF or WEBP (max 5MB each, up to 4 photos)</p>
+   379→   978→   978→                </div>
+   380→   979→   979→              </FileInput>
+   381→   980→   980→              <FileUploaderContent className="flex flex-wrap gap-3 mt-3">
+   382→   981→   981→                {files.map((file, i) => (
+   383→   982→   982→                  <FileUploaderItem
+   384→   983→   983→                    key={`${file.name}-${file.lastModified}-${file.size}`}
+   385→   984→   984→                    index={i}
+   386→   985→   985→                    className="size-24 p-0 rounded-lg overflow-hidden border border-gray-200 shadow-sm"
+   387→   986→   986→                    aria-roledescription={`file ${i + 1} containing ${file.name}`}
+   388→   987→   987→                  >
+   389→   988→   988→                    <div className="relative w-full h-full group/img">
+   390→   989→   989→                      <img
+   391→   990→   990→                        src={URL.createObjectURL(file)}
+   392→   991→   991→                        alt={file.name}
+   393→   992→   992→                        className="w-full h-full object-cover rounded-lg"
+   394→   993→   993→                      />
+   395→   994→   994→                      <div className="absolute inset-0 bg-black/0 group-hover/img:bg-black/30 transition-colors rounded-lg" />
+   396→   995→   995→                      <div className="absolute bottom-1 left-1 right-1">
+   397→   996→   996→                        <span className="text-[10px] text-white bg-black/50 rounded px-1 truncate block">
+   398→   997→   997→                          {(file.size / 1024).toFixed(0)} KB
+   399→   998→   998→                        </span>
+   400→   999→   999→                      </div>
+
+[showing lines 1-400 of 402; use offset=401 with limit to continue reading]

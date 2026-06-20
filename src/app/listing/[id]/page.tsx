@@ -13,9 +13,9 @@ import { useMarketplaceStore, type ListingDetail, type ConversationMessage } fro
 import {
   ArrowLeft, ChevronLeft, ChevronRight, Heart, Share2,
   MapPin, Clock, Eye, CheckCircle2, GraduationCap,
-  Shield, Star, Send, User, Phone, Share, Flag,
+  Shield, Star, Send, User, Phone, Flag,
   BookOpen, Smartphone, Home, Shirt, Car, Armchair,
-  Dumbbell, Briefcase, Coffee, Gift, Tag,
+  Dumbbell, Briefcase, Coffee, Gift, Tag, Trash2,
 } from 'lucide-react'
 
 const ICON_MAP: Record<string, React.ReactNode> = {
@@ -73,6 +73,7 @@ export default function ListingDetailPage() {
   const [newMessage, setNewMessage] = useState('')
   const [conversationId, setConversationId] = useState<string | null>(null)
   const [startingChat, setStartingChat] = useState(false)
+  const [deleting, setDeleting] = useState(false)
   const messagesEndRef = useRef<HTMLDivElement>(null)
 
   const listingId = params.id as string
@@ -99,6 +100,16 @@ export default function ListingDetailPage() {
     if (listingId) fetchListing()
   }, [listingId, router])
 
+  // Check wishlist status when listing loads
+  useEffect(() => {
+    if (currentUser && listingId) {
+      fetch(`/api/wishlist/check?userId=${currentUser.id}&listingId=${listingId}`)
+        .then(r => r.json())
+        .then(data => setLiked(data.wishlisted))
+        .catch(() => {})
+    }
+  }, [currentUser, listingId])
+
   // Auto-start or resume conversation
   const startConversation = useCallback(async () => {
     if (!currentUser || !listing || isOwner) return
@@ -116,7 +127,6 @@ export default function ListingDetailPage() {
       if (res.ok) {
         const convo = await res.json()
         setConversationId(convo.id)
-        // Fetch messages
         const msgRes = await fetch(`/api/conversations/${convo.id}/messages?userId=${currentUser.id}`)
         if (msgRes.ok) setMessages(await msgRes.json())
       }
@@ -168,6 +178,78 @@ export default function ListingDetailPage() {
     setContactTab('chat')
   }
 
+  // ─── Share ───
+  const handleShare = async () => {
+    const url = window.location.href
+    const text = `${listing?.title} - ${formatPrice(listing?.price || 0)} on StudentMarket SA`
+
+    if (navigator.share) {
+      try {
+        await navigator.share({ title: listing?.title || 'StudentMarket Listing', text, url })
+      } catch (err) {
+        // User cancelled or error
+        if ((err as DOMException).name !== 'AbortError') {
+          await fallbackCopy(url)
+        }
+      }
+    } else {
+      await fallbackCopy(url)
+    }
+  }
+
+  const fallbackCopy = async (url: string) => {
+    try {
+      await navigator.clipboard.writeText(url)
+      toast.success('Link copied to clipboard!')
+    } catch {
+      toast.error('Failed to copy link')
+    }
+  }
+
+  // ─── Wishlist Toggle ───
+  const handleWishlistToggle = async () => {
+    if (!currentUser) {
+      toast.error('Sign in to add to wishlist')
+      router.push('/auth')
+      return
+    }
+    try {
+      const res = await fetch('/api/wishlist', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ userId: currentUser.id, listingId }),
+      })
+      if (res.ok) {
+        const data = await res.json()
+        setLiked(data.action === 'added')
+        toast.success(data.action === 'added' ? 'Added to wishlist' : 'Removed from wishlist')
+      }
+    } catch {
+      toast.error('Failed to update wishlist')
+    }
+  }
+
+  // ─── Delete Listing ───
+  const handleDeleteListing = async () => {
+    if (!listing || !isOwner) return
+    if (!confirm('Are you sure you want to delete this listing? This action cannot be undone.')) return
+
+    setDeleting(true)
+    try {
+      const res = await fetch(`/api/listings/${listing.id}`, { method: 'DELETE' })
+      if (res.ok) {
+        toast.success('Listing deleted successfully')
+        router.push('/')
+      } else {
+        toast.error('Failed to delete listing')
+      }
+    } catch {
+      toast.error('Failed to delete listing')
+    } finally {
+      setDeleting(false)
+    }
+  }
+
   if (loading) {
     return (
       <div className="min-h-screen bg-gray-50">
@@ -208,12 +290,33 @@ export default function ListingDetailPage() {
           <Separator orientation="vertical" className="h-6" />
           <span className="text-sm text-gray-500 truncate flex-1">{listing.title}</span>
           <div className="flex items-center gap-1">
-            <button onClick={() => setLiked(!liked)} className="p-2 rounded-full hover:bg-gray-100 transition-colors">
-              <Heart className={`h-5 w-5 ${liked ? 'fill-red-500 text-red-500' : 'text-gray-400'}`} />
+            {/* Wishlist Heart */}
+            <button
+              onClick={(e) => { e.stopPropagation(); handleWishlistToggle() }}
+              className="p-2 rounded-full hover:bg-gray-100 transition-colors"
+              title={liked ? 'Remove from wishlist' : 'Add to wishlist'}
+            >
+              <Heart className={`h-5 w-5 transition-all ${liked ? 'fill-red-500 text-red-500 scale-110' : 'text-gray-400 hover:text-red-400'}`} />
             </button>
-            <button className="p-2 rounded-full hover:bg-gray-100 transition-colors">
-              <Share2 className="h-5 w-5 text-gray-400" />
+            {/* Share */}
+            <button
+              onClick={(e) => { e.stopPropagation(); handleShare() }}
+              className="p-2 rounded-full hover:bg-gray-100 transition-colors"
+              title="Share listing"
+            >
+              <Share2 className="h-5 w-5 text-gray-400 hover:text-gray-600" />
             </button>
+            {/* Delete for owner */}
+            {isOwner && (
+              <button
+                onClick={(e) => { e.stopPropagation(); handleDeleteListing() }}
+                className="p-2 rounded-full hover:bg-red-50 transition-colors"
+                title="Delete listing"
+                disabled={deleting}
+              >
+                <Trash2 className={`h-5 w-5 ${deleting ? 'text-gray-300 animate-pulse' : 'text-gray-400 hover:text-red-500'}`} />
+              </button>
+            )}
           </div>
         </div>
       </div>
@@ -253,13 +356,11 @@ export default function ListingDetailPage() {
                   </button>
                 </>
               )}
-              {/* Image counter */}
               {images.length > 1 && (
                 <div className="absolute bottom-3 right-3 bg-black/60 text-white text-xs px-2.5 py-1 rounded-full">
                   {imageIndex + 1} / {images.length}
                 </div>
               )}
-              {/* Condition badge */}
               <Badge
                 className="absolute top-3 left-3 text-xs font-medium px-2.5 py-1"
                 style={{ backgroundColor: listing.category.color + 'DD', color: 'white' }}
@@ -268,7 +369,6 @@ export default function ListingDetailPage() {
               </Badge>
             </div>
 
-            {/* Thumbnail gallery */}
             {images.length > 1 && (
               <div className="flex gap-2 mt-3">
                 {images.map((img, i) => (
@@ -387,6 +487,24 @@ export default function ListingDetailPage() {
             </div>
 
             <Separator className="my-6" />
+
+            {/* Owner actions */}
+            {isOwner && (
+              <div className="space-y-3">
+                <div className="p-4 bg-amber-50 border border-amber-100 rounded-2xl text-sm text-amber-700 flex items-center gap-2">
+                  <Shield className="h-4 w-4" /> This is your listing
+                </div>
+                <Button
+                  onClick={handleDeleteListing}
+                  disabled={deleting}
+                  variant="destructive"
+                  className="w-full rounded-xl h-11 font-semibold flex items-center gap-2"
+                >
+                  <Trash2 className="h-4 w-4" />
+                  {deleting ? 'Deleting...' : 'Delete Listing'}
+                </Button>
+              </div>
+            )}
 
             {/* Contact / Chat Section */}
             {currentUser && !isOwner ? (
@@ -522,21 +640,17 @@ export default function ListingDetailPage() {
                   </div>
                 )}
               </div>
-            ) : currentUser && isOwner ? (
-              <div className="p-4 bg-amber-50 border border-amber-100 rounded-2xl text-sm text-amber-700 flex items-center gap-2">
-                <Shield className="h-4 w-4" /> This is your listing
-              </div>
-            ) : (
+            ) : !currentUser ? (
               <div className="text-center py-6">
                 <p className="text-sm text-gray-500 mb-3">Sign in to message the seller</p>
                 <Button
-                  onClick={() => router.push('/?view=login')}
+                  onClick={() => router.push('/auth')}
                   className="bg-emerald-600 hover:bg-emerald-700 rounded-xl px-8"
                 >
                   <User className="h-4 w-4 mr-2" /> Sign In
                 </Button>
               </div>
-            )}
+            ) : null}
           </div>
         </div>
       </div>

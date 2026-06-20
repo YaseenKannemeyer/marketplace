@@ -29,6 +29,7 @@ model User {
   buyerConversations Conversation[] @relation("BuyerConversations")
   sellerConversations Conversation[] @relation("SellerConversations")
   sentConvoMessages  ConversationMessage[] @relation("SentConvoMessages")
+  wishlistItems       WishlistItem[]
 }
 
 model Listing {
@@ -54,6 +55,7 @@ model Listing {
   university     University? @relation(fields: [universityId], references: [id])
   messages       Message[]
   conversations  Conversation[]
+  wishlistItems  WishlistItem[]
 }
 
 model Category {
@@ -130,4 +132,16 @@ model ConversationMessage {
 
   conversation   Conversation @relation(fields: [conversationId], references: [id], onDelete: Cascade)
   sender         User      @relation("SentConvoMessages", fields: [senderId], references: [id])
+}
+
+model WishlistItem {
+  id         String   @id @default(cuid())
+  userId     String
+  listingId  String
+  createdAt  DateTime @default(now())
+
+  user       User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  listing    Listing   @relation(fields: [listingId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, listingId])
 }
