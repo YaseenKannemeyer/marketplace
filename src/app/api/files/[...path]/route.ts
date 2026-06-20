@@ -21,6 +21,16 @@ const MIME_MAP: Record<string, string> = {
   m4a: 'audio/mp4',
 };
 
+/**
+ * BACKWARD COMPATIBILITY ROUTE
+ *
+ * New uploads go to Cloudinary, but this route stays active so that
+ * any old URLs stored in the database (e.g., seed data with /api/files/...)
+ * still work. If a file exists on local disk, it serves it.
+ * Otherwise returns 404.
+ *
+ * Once all old data is migrated to Cloudinary, this route can be safely deleted.
+ */
 export async function GET(
   _request: NextRequest,
   { params }: { params: Promise<{ path: string[] }> }
@@ -36,7 +46,7 @@ export async function GET(
       return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
     }
 
-    // Check file exists
+    // Check file exists on local disk
     try {
       await stat(filePath);
     } catch {

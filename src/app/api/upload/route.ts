@@ -1,8 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { writeFile, mkdir } from 'fs/promises';
-import path from 'path';
-
-const UPLOAD_ROOT = path.join(process.cwd(), 'uploads');
+import { uploadToCloudinary } from '@/lib/cloudinary';
 
 const ALLOWED_FOLDERS = ['listings', 'profiles', 'avatars', 'stories', 'chat'];
 const ALLOWED_IMAGE_TYPES = ['image/jpeg', 'image/png', 'image/gif', 'image/webp'];
@@ -22,12 +19,18 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: 'No files provided' }, { status: 400 });
     }
 
+    if (
+      !process.env.CLOUDINARY_CLOUD_NAME ||
+      !process.env.CLOUDINARY_API_KEY ||
+      !process.env.CLOUDINARY_API_SECRET
+    ) {
+      return NextResponse.json(
+        { error: 'Cloudinary is not configured. Set CLOUDINARY_CLOUD_NAME, CLOUDINARY_API_KEY, and CLOUDINARY_API_SECRET in your environment.' },
+        { status: 500 },
+      );
+    }
+
     const safeFolder = ALLOWED_FOLDERS.includes(folder) ? folder : 'listings';
-    const uploadDir = path.join(UPLOAD_ROOT, safeFolder);
-
-    // Ensure directory exists
-    await mkdir(uploadDir, { recursive: true });
-
     const uploadedUrls: string[] = [];
 
     for (const file of files) {
@@ -56,11 +59,18 @@ export async function POST(request: NextRequest) {
       const buffer = Buffer.from(bytes);
 
       const ext = file.name.split('.').pop() || (isImage ? 'jpg' : isVideo ? 'mp4' : 'webm');
-      const uniqueName = `${Date.now()}-${Math.random().toString(36).slice(2, 8)}.${ext}`;
-      const filePath = path.join(uploadDir, uniqueName);
+      const uniqueName = `${Date.now()}-${Math.random().toString(36).slice(2, 8)}`;
 
-      await writeFile(filePath, buffer);
-      uploadedUrls.push(`/api/files/${safeFolder}/${uniqueName}`);
+      const result = await uploadToCloudinary(buffer, safeFolder, uniqueName);
+
+      if (result && typeof result === 'object' && 'secure_url' in result) {
+        uploadedUrls.push((result as { secure_url: string }).secure_url);
+      } else {
+        return NextResponse.json(
+          { error: `Failed to upload "${file.name}" to Cloudinary.` },
+          { status: 500 },
+        );
+      }
     }
 
     return NextResponse.json({ urls: uploadedUrls });
