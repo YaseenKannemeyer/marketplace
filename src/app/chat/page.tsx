@@ -6,7 +6,7 @@ import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
 import { Input } from '@/components/ui/input'
-import { Separator } from '@/components/ui/skeleton'
+// Separator import removed - was incorrect (imported from skeleton instead of separator component)
 import { toast } from 'sonner'
 import { useMarketplaceStore, type ConversationSummary } from '@/store/marketplace'
 import {

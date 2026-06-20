@@ -50,5 +50,29 @@ test
 prompt
 
 server.log
+
 # Skills directory
 /skills/
+
+# Uploaded user files
+/uploads/
+
+# SQLite database
+/db/*.db
+/db/*.db-journal
+
+# Tool results
+/tool-results/
+
+# Download artifacts (user downloads separately)
+/download/*.png
+/download/*.jpg
+/download/*.pdf
+/download/*.docx
+/download/*.pptx
+
+# Z-scripts (internal)
+/.zscripts/
+
+# Caddyfile (deployment-specific)
+/Caddyfile

@@ -12,6 +12,13 @@ const MIME_MAP: Record<string, string> = {
   gif: 'image/gif',
   webp: 'image/webp',
   svg: 'image/svg+xml',
+  mp4: 'video/mp4',
+  webm: 'video/webm',
+  mov: 'video/quicktime',
+  ogg: 'audio/ogg',
+  mp3: 'audio/mpeg',
+  wav: 'audio/wav',
+  m4a: 'audio/mp4',
 };
 
 export async function GET(

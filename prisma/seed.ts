@@ -187,7 +187,8 @@ const stories = [
 async function seed() {
   console.log('🌱 Seeding database...')
 
-  // Clear existing data
+  // Clear existing data (order matters due to foreign key constraints)
+  await db.wishlistItem.deleteMany()
   await db.conversationMessage.deleteMany()
   await db.conversation.deleteMany()
   await db.story.deleteMany()
