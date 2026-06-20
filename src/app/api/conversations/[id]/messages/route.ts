@@ -44,18 +44,36 @@ export async function POST(
   try {
     const { id } = await params
     const body = await request.json()
-    const { senderId, content } = body
+    const { senderId, content, messageType, mediaUrl, mediaDuration } = body
 
-    if (!senderId || !content) {
-      return NextResponse.json({ error: 'Sender ID and content are required' }, { status: 400 })
+    if (!senderId) {
+      return NextResponse.json({ error: 'Sender ID is required' }, { status: 400 })
     }
+
+    // For text messages, content is required. For media, mediaUrl is required.
+    const type = messageType || 'text'
+    if (type === 'text' && !content?.trim()) {
+      return NextResponse.json({ error: 'Message content is required' }, { status: 400 })
+    }
+    if ((type === 'image' || type === 'video' || type === 'voice') && !mediaUrl) {
+      return NextResponse.json({ error: 'Media URL is required for this message type' }, { status: 400 })
+    }
+
+    // Build the summary text for the conversation's lastMessage field
+    let lastMessageText = content || ''
+    if (type === 'image') lastMessageText = '📷 Photo'
+    if (type === 'video') lastMessageText = '🎥 Video'
+    if (type === 'voice') lastMessageText = '🎤 Voice note'
 
     // Create message
     const message = await db.conversationMessage.create({
       data: {
         conversationId: id,
         senderId,
-        content: content.trim(),
+        content: content || '',
+        messageType: type,
+        mediaUrl: mediaUrl || null,
+        mediaDuration: mediaDuration || null,
       },
       include: {
         sender: { select: { id: true, name: true, avatar: true } },
@@ -66,7 +84,7 @@ export async function POST(
     await db.conversation.update({
       where: { id },
       data: {
-        lastMessage: content.trim(),
+        lastMessage: lastMessageText,
         lastMessageAt: new Date(),
       },
     })

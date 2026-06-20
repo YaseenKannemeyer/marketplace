@@ -104,6 +104,9 @@ export type ConversationMessage = {
   conversationId: string
   senderId: string
   content: string
+  messageType: string
+  mediaUrl: string | null
+  mediaDuration: number | null
   read: boolean
   createdAt: string
   sender: { id: string; name: string; avatar: string }

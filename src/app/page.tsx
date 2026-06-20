@@ -254,6 +254,7 @@ function CreateStoryDialog({ onCreated }: { onCreated: () => void }) {
   const [storyMode, setStoryMode] = useState<'gradient' | 'photo'>('gradient')
   const [storyFile, setStoryFile] = useState<File[]>([])
   const [uploadedPreview, setUploadedPreview] = useState<string | null>(null)
+  const cameraInputRef = useRef<HTMLInputElement>(null)
 
   const storyDropzone = {
     accept: { 'image/*': ['.jpg', '.jpeg', '.png', '.gif', '.webp'] },
@@ -307,8 +308,20 @@ function CreateStoryDialog({ onCreated }: { onCreated: () => void }) {
     } catch { toast.error('Failed to post story') } finally { setIsSubmitting(false) }
   }
 
+  const handleCameraCapture = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0]
+    if (file) {
+      setStoryMode('photo')
+      setStoryFile([file])
+      setUploadedPreview(URL.createObjectURL(file))
+    }
+    e.target.value = ''
+  }
+
   return (
     <Dialog open={showCreateStory} onOpenChange={(open) => { if (!open) { setShowCreateStory(false); setStoryFile([]); setUploadedPreview(null); setStoryMode('gradient') } }}>
+      {/* Hidden camera input */}
+      <input ref={cameraInputRef} type="file" accept="image/jpeg,image/png,image/webp" capture="environment" className="hidden" onChange={handleCameraCapture} />
       <DialogContent className="max-w-md">
         <DialogHeader>
           <DialogTitle className="text-lg flex items-center gap-2"><Camera className="h-5 w-5 text-emerald-600" />Create Story</DialogTitle>
@@ -322,6 +335,9 @@ function CreateStoryDialog({ onCreated }: { onCreated: () => void }) {
             </button>
             <button onClick={() => setStoryMode('photo')} className={`flex-1 py-2 rounded-md text-sm font-medium transition-all ${storyMode === 'photo' ? 'bg-white text-gray-900 shadow-sm' : 'text-gray-500'}`}>
               <span className="flex items-center justify-center gap-1.5"><ImagePlus className="h-3.5 w-3.5" /> Photo</span>
+            </button>
+            <button onClick={() => cameraInputRef.current?.click()} className={`flex-1 py-2 rounded-md text-sm font-medium transition-all ${false ? 'bg-white text-gray-900 shadow-sm' : 'text-gray-500 hover:text-gray-700'}`}>
+              <span className="flex items-center justify-center gap-1.5"><Camera className="h-3.5 w-3.5" /> Take Photo</span>
             </button>
           </div>
 

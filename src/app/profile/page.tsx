@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import { useRouter } from 'next/navigation'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
@@ -32,6 +32,8 @@ export default function ProfilePage() {
   const { currentUser, setCurrentUser, logout } = useMarketplaceStore()
 
   const [activeTab, setActiveTab] = useState<'profile' | 'password' | 'photos'>('profile')
+
+  const cameraInputRef = useRef<HTMLInputElement>(null)
 
   // Profile form state
   const [name, setName] = useState('')
@@ -264,6 +266,15 @@ export default function ProfilePage() {
     }
   }
 
+  const handleCameraCapture = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0]
+    if (file) {
+      setAvatarFile([file])
+      uploadAvatar(file)
+    }
+    e.target.value = ''
+  }
+
   const SA_UNIVERSITIES = ['UCT', 'Wits', 'Stellenbosch', 'UP', 'UKZN', 'UJ', 'Rhodes', 'NWU', 'UFS', 'UL', 'CPUT', 'DUT', 'TUT', 'UNISA', 'Other']
 
   const passwordStrength = (pw: string) => {
@@ -291,6 +302,8 @@ export default function ProfilePage() {
 
   return (
     <div className="min-h-screen bg-gradient-to-b from-gray-50 to-emerald-50/30">
+      {/* Hidden camera input for profile picture */}
+      <input ref={cameraInputRef} type="file" accept="image/jpeg,image/png,image/webp" capture="user" className="hidden" onChange={handleCameraCapture} />
       {/* Top Bar */}
       <div className="sticky top-0 z-50 glass border-b border-white/20 shadow-sm">
         <div className="max-w-4xl mx-auto px-4 py-3.5 flex items-center gap-3">
@@ -486,6 +499,12 @@ export default function ProfilePage() {
                             ))}
                           </FileUploaderContent>
                         </FileUploader>
+                        <button
+                          onClick={() => cameraInputRef.current?.click()}
+                          className="mt-2 flex items-center gap-2 text-sm text-emerald-600 hover:text-emerald-700 font-medium transition-colors"
+                        >
+                          <Camera className="h-4 w-4" /> Take a photo
+                        </button>
                       </div>
                     )}
                   </div>
