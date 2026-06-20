@@ -17,7 +17,7 @@ model User {
   university     String?
   campus         String?
   bio            String?
-  profileImages  Json    @default("[]")
+  profileImages  String    @default("[]")
   verified       Boolean   @default(false)
   createdAt      DateTime  @default(now())
   updatedAt      DateTime  @updatedAt
@@ -43,7 +43,7 @@ model Listing {
   universityId   String?
   campus         String?
   location       String
-  images         Json    @default("[]")
+  images         String    @default("[]")
   status         String    @default("active")
   views          Int       @default(0)
   createdAt      DateTime  @default(now())
@@ -73,7 +73,7 @@ model University {
   name           String    @unique
   shortName      String
   province       String
-  campuses       Json    @default("[]")
+  campuses       String    @default("[]")
 
   listings       Listing[]
 }
